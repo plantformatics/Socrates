@@ -1,0 +1,227 @@
+---
+title: "RRscca Clustering Tutorial"
+author: "Alexandre P. Marand"
+date: "10/27/2020"
+output:
+    html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preprocessing and modeling chromatin accessibility with regularized quasibinomial logistic regression
+
+scATAC-seq data is highly sparse and essentially binary for diploid cells, providing a significant challenge for downstream analyses. To mitigate these technical effects, we developed a model-based approach that we term Regularized quasibinomial logistic Regression for Single-Cell Chromatin Accessibility (RRscca). Inspired by innotation in scRNA-seq methods, namely the [SCTransform](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1874-1) function implemented in [Seurat](https://satijalab.org/seurat/), RRscca removes technical variation confounding the accessibility signal from each cell and peak by fitting a generalized linear model between binary counts of chromatin accessibility and per-cell log10 read depths for each peak independently (`y~x`, where `y` represents a binary numeric vector of accessibility states across cells at a given peak, and `x` represents a vector of log10[sum of accessible peaks] per cell). `RRscca` explicitly avoids overfitting by sampling representative peaks with kernel regression, learning global quasibinomial model parameters (including a term for over-dispersion), and projecting the learned parameters to all peaks (regularization). The models are then used to extract Pearson's residuals that represent read depth-normalized chromatin accessibility profiles for each cell and peak. **Technical Note:** You will need access to 8G memory to run this example. 
+
+***
+
+
+## Load RRscca and raw data
+
+Here, we demonstrate how to load the following inputs to create an `RRscca` object:
+
+*1.* **binary sparse peak x cell matrix** (a gzipped text file in triplet tsv format).
+*2.* **meta-data** saved as a tsv document containing various per-cell metrics. 
+
+Meta-data is not necessarily required, but useful for evaluating technical effects in clustering, as well as other downstream steps. An example of input data formats for 1,500 PBMC cells and how to construct an `RRscca` object from scratch is shown below. 
+
+```{r loadRaw, warnings=FALSE}
+# load library
+suppressWarnings(library("RRscca"))
+
+# specify paths to raw data in RRscca package
+input <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.sparse.gz", package="RRscca")
+meta <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.metadata.txt", package="RRscca")
+
+# load raw data for viewing
+input.format <- read.table(input)
+meta.format <- read.table(meta)
+
+# view
+head(input.format)
+head(meta.format)
+
+# load data into RRscca object
+rrscca.object <- loadSparseData(input=input, meta=meta, verbose=T)
+```
+
+***
+
+
+## Filter peaks and cells
+
+For the remainder of this tutorial, we will work from a 5K PBMC data set publically available from the 10X Genomics [website](https://support.10xgenomics.com/single-cell-atac/datasets/1.2.0/atac_pbmc_10k_nextgem). A precompiled `RRscca` binary object containing this data is automatically available after loading the `RRscca` package.
+
+```{r view_RRscca_OBJ}
+str(obj)
+```
+
+To reduce the effects of outlier peaks and cells on clustering, it is often helpful to remove cells with few accessible peaks, and peaks with extreme accessibility profiles (i.e. peaks that are accessible in all, or very few cells). Specifically, the cell x peak matrix can be filtered by adjusting heurstic frequency thresholds after visual inspection of cell and peak accessibility distributions. Let's investigate these distributions further to determine reasonable thresholds for this particular data set.
+
+```{r view_distributions, fig.height=6, fig.width=14}
+# estimate log10 number of accessible regions per cell
+cell.counts <- Matrix::colSums(obj$counts)
+
+# estimate peak accessibility frequency across cells
+site.freq <- Matrix::rowMeans(obj$counts)
+
+# plot distributions
+layout(matrix(c(1:2), ncol=2))
+par(mar=c(3,3,1,1))
+plot(density(cell.counts), main="log10 cell counts", log="x")
+abline(v=500, col="red")
+plot(density(site.freq), main="average peak accessibility", log="x")
+```
+
+It appears that most cells have a median over around 7,000 accessible peaks. The cells on the lower tail of the distribution may reflect broken nuclei, so we'll remove cells with less than 500 open peaks from the analysis. The distribution of average peak accessibilities doesnt show any clear (lower-tail) cut-offs, therefore, we will use the default thresholds to select which peaks to retain in the analysis.
+
+```{r filter_data}
+# filter matrix 
+obj <- cleanData(obj, min.c=500, verbose=T)
+```
+
+
+#### Filtering peaks enriched in pre-computed clusters
+**NOTE**, If users have generated crude clusters, such as *in silico* sorting described by [Cusanovich et al. 2018](https://linkinghub.elsevier.com/retrieve/pii/S0092-8674(18)30855-9), the parameters `min.p` and `preclusterID` allow users to set minimum peak accessibility frequencies for pre-specied groups. Below, we constrain peaks to be accessible in at least 5% of cells in at least one `crude_cluster`. See `?cleanData` for more details.
+
+```{r filter_data_clusters, eval=FALSE}
+# simulate 10 random clusters, 
+obj$meta$crude_clusters <- sample(factor(seq(1:10)), nrow(obj$meta), replace=T)
+obj <- cleanData(obj, min.p=0.05, preclusterID="crude_clusters")
+```
+
+***
+
+
+## Normalization
+
+With a filtered cell x peak matrix in hand, we can now calculate normalized accessibility scores (Pearson's residuals) across all cells and peaks using regularized quasibinomial logistic regression. Note that the function `regModel` can be parallelized by setting `nthreads` to a number greater than 1. Parallel implementations depend on the `doSNOW` library. In the example below, we set the number of threads to 4 to speed-up the analysis. 
+
+```{r regModel_1, eval=TRUE}
+# run regularized regression
+obj <- regModel(obj, verbose=T, nthreads=4)
+```
+
+***
+
+
+## Alternative normalization strategies
+
+In addition to regularized modeling, we provide additional functions to normalize chromatin accessibility profiles. Currently included in this release (supplement to `regModel`) are `tfidf`, `logisticModel`, and `regModel2`. In all cases, the output is saved in the 'residuals' slot of the output object (`obj$residuals`). These additional normalization approaches are illustrated below:
+
+#### TF-IDF
+
+`tfidf` has the benefit of keeping the normalized data in a sparse format that allows users to conserve and reduce memory usage. We will compare TF-IDF normalization with quasibinomial later on in this tutorial. The TF-IDF function was adapted from Andrew Hill, the original implementation can be found [here](http://andrewjohnhill.com/blog/2019/05/06/dimensionality-reduction-for-scatac-data/)
+
+```{r tfidf, eval=TRUE}
+# run TF-IDF normalization
+tfidf.obj <- tfidf(obj)
+```    
+
+#### Logistic regression without regularization
+
+`logisticModel` does not regularize parameters by explicitly learning a model each peak independently. To run logistic regression without any regularization, run the following line of code. See `?logisticModel` for more details.
+
+```{r logisticModel, eval=FALSE}
+# run logisticModel
+lr.obj <- logisticModel(obj, verbose = T)
+```
+
+#### Regularized logistic regression with cell and peak sub-sampling.
+
+As the number of cells can quickly become prohibitive (we have tested up to 60K cells across 160K peaks, requiring upwards of 50G memory), we extended the peak sub-sampling procedure for sampling cells. The function `regModel2` samples subsets of cells uniforming for factors specified in a column from the meta data, such as sampling 1,000 cells from different biological replicates or tissues. Sampling down to around 1,000 cells dramatically speeds up the computation with little effects on clustering. See `?regModel2` for more details.
+
+```{r regModel2, eval=FALSE}
+# run regularized model with cell sampling
+regMod2.obj <- regModel2(obj, verbose=T)
+```
+
+***
+
+
+## Reducing dimensions
+
+### Singular Value Decomposition (SVD)
+
+After normalizing peak x cell chromatin accessibility profiles using one of the aforementioned methods, we can reduce the dimensionality of residual matrix to remove noise and better model cell-cell relationships in a reduced space. Dimensionality reduction is implemented via Singular Value Decomposition (SVD) from the `irlba` package. We will reduce the dimensions of the normalized profiles from RRscca and TF-IDF.
+
+```{r reduceDims}
+# reduce dimensionality of the residual matrix
+obj <- reduceDims(obj, n.pcs=50, cor.max=0.7, verbose=T)
+tfidf.obj <- reduceDims(tfidf.obj, n.pcs=50, cor.max=0.5, verbose=T)
+```
+
+The above command estimates the first 50 singular values, and removes singular values correlated with technical variation (read depth) above a Spearman Correlation Coefficient of 0.7. 
+
+### Projecting into a reduced dimensionality with UMAP
+
+Similarity between cells is best visualized on two dimensions. Uniform Manifold Approximation Projection (UMAP) has gained popularity in single-cell approaches owing to its scalability and capacity for overall simple interpretations. To generate a UMAP embedding of cells, we can run the `projectUMAP` function which relies on `uwot::umap`:
+
+```{r projectUMAP}
+# run projectUMAP
+obj <- projectUMAP(obj, verbose=T)
+tfidf.obj <- projectUMAP(tfidf.obj, verbose=T)
+```
+
+We can quickly visualize the reduced embedding. As you can see below, they are quite similar. In cases where speed and memory usage are central factors, it may be more advisable to use TF-IDF normalization in place of RRscca. One benefit of using model-based approaches is that the normalized values can be readily interpretted for down-stream analyses. 
+
+```{r plotUMAPraw, fig.height=6, fig.width=12}
+# plot UMAP results
+layout(matrix(c(1:2), ncol=2, byrow=T))
+par(mar=c(3,3,1,1))
+plot(obj$UMAP, pch=16, cex=0.2, main="RRscca")
+plot(tfidf.obj$UMAP, pch=16, cex=0.2, main="TF-IDF")
+```
+
+***
+
+
+## Graph-based clustering
+
+Visualization of the UMAP embeddings suggests several groups of cells with distinct identities. We can cluster cells into groups using graph-based clustering by leaning on Louvain and Leiden clustering approaches provided by the popular `Seurat` package. Below is a wrapper for running graph-based clustering in the SVD space via Seurat. Cluster membership is appended to the meta data.frame under the column 'LouvainClusters' by default. For a list of tuneable parameters, run `?callClusters` in the R console. 
+
+```{r callClusters}
+# run clustering
+obj <- callClusters(obj, verbose=T)
+tfidf.obj <- callClusters(tfidf.obj, verbose=T)
+```
+
+## Plotting results
+
+Having run the clustering algorithm, we can now visualize the different groupings on the UMAP embedding. 
+
+```{r plotClusters, fig.height=6, fig.width=12}
+layout(matrix(c(1:2), ncol=2, byrow=T))
+par(mar=c(3,3,1,1))
+plotUMAP(obj, main="RRscca")
+plotUMAP(tfidf.obj, main="TFIDF")
+```
+
+## Saving results
+
+The `RRscca` object is updated iteratively after each processing step. To save results for sharing or future exploration, you can use the following command to save a snapshot of current stage of analysis:
+
+```{r savingData}
+saveRDS(obj, file="RRscca_object.rds")
+```
+
+## Accessing results
+
+Results are appended to the `RRscca` object after each function, as described above. Below describes the location of different data sets up to this point.
+
+*Raw counts `obj$counts`
+*Raw meta-data  `obj$meta`
+*SVD/PCA    `obj$PCA`
+*Initial UMAP   `obj$UMAP`
+*Final UMAP `obj$final.UMAP`
+*Cluster + meta data (filtered cells)   `obj$final.meta`
+
+***
+
+
+### Session Information
+
+```{r sessionInfo}
+sessionInfo()
+```
