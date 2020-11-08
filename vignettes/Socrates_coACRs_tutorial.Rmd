@@ -1,0 +1,38 @@
+---
+title: "Socrates_coACR_tutorial"
+author: "Alexandre P. Marand"
+date: "11/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Quick preprocessing
+
+Clean, normalize and cluster the `Socrates` object that is automatically loaded into the namespace with the package. In this example, we will use `tfidf` for a bit of a speed-up over other available options.
+
+```{r process}
+
+# filter, normalize, and reduce dimensions
+obj <- cleanData(obj, min.c=1000, min.t=0.001, max.t=0.005)
+obj <- tfidf(obj)
+obj <- reduceDims(obj, n.pcs=50, cor.max=0.7)
+obj <- projectUMAP(obj)
+
+# cluster
+obj <- callClusters(obj, res=0.6)
+
+```
+
+## Identify co-accessible ACRs
+
+To find co-accessible ACRs, `Socrates` needs a few annotation files, including a path to the reference genome and gene coordinates. Below is a quick example of how to identify co-accessible ACRs using all barcodes.
+
+```{r coACRs-1}
+
+# find co-accessible ACRs in the entire data set (not subset by cluster)
+obj <- coAccess(obj, genome=)
+
+```

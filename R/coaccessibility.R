@@ -84,6 +84,9 @@ coAccess <- function(obj,
         }
     }
 
+    # load genome
+    genome <- read.table(genome)
+
     # create cicero objects and process
     obs <- as.data.frame(summary(obj$counts))
     obs$i <- factor(rownames(obj$counts)[obs$i])
