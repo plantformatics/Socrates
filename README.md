@@ -49,7 +49,7 @@ devtools::install_github("plantformatics/Socrates")
 ## Tutorials
 [Table of Content](https://github.com/plantformatics/Socrates/wiki)
 
-[1. Pre-processing, dimensionality reduction, and clustering](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/master/vignettes/Socrates_simple_clustering_tutorial.html)
+[1. Pre-processing, dimensionality reduction, and clustering](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_simple_clustering_tutorial.html)
 
-[2. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/master/vignettes/Socrates_clustering_comparison_tutorial.html)
+[2. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_clustering_comparison_tutorial.html)
 
