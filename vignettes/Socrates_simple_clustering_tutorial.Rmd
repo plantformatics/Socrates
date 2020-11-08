@@ -1,5 +1,5 @@
 ---
-title: "RRscca Tutorial: Simple Clustering Workflow"
+title: "Socrates Tutorial: Simple Clustering Workflow"
 author: "Alexandre P. Marand"
 date: "10/28/2020"
 output: 
@@ -12,27 +12,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Preprocessing and modeling chromatin accessibility with regularized quasibinomial logistic regression
 
-scATAC-seq data is highly sparse and essentially binary for diploid cells, providing a significant challenge for downstream analyses. To mitigate these technical effects, we developed a model-based approach that we term Regularized quasibinomial logistic Regression for Single-Cell Chromatin Accessibility (RRscca). Inspired by innotation in scRNA-seq methods, namely the [SCTransform](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1874-1) function implemented in [Seurat](https://satijalab.org/seurat/), RRscca removes technical variation confounding the accessibility signal from each cell and peak by fitting a generalized linear model between binary counts of chromatin accessibility and per-cell log10 read depths for each peak independently (`y~x`, where `y` represents a binary numeric vector of accessibility states across cells at a given peak, and `x` represents a vector of log10[sum of accessible peaks] per cell). `RRscca` explicitly avoids overfitting by sampling representative peaks with kernel regression, learning global quasibinomial model parameters (including a term for over-dispersion), and projecting the learned parameters to all peaks (regularization). The models are then used to extract Pearson's residuals that represent read depth-normalized chromatin accessibility profiles for each cell and peak. **Technical Note:** You will need access to 8G memory to run this example. 
+scATAC-seq data is highly sparse and essentially binary for diploid cells, providing a significant challenge for downstream analyses. To mitigate these technical effects, we developed a model-based approach that we term Regularized quasibinomial logistic Regression for Single-Cell Chromatin Accessibility (Socrates). Inspired by innotation in scRNA-seq methods, namely the [SCTransform](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1874-1) function implemented in [Seurat](https://satijalab.org/seurat/), Socrates removes technical variation confounding the accessibility signal from each cell and peak by fitting a generalized linear model between binary counts of chromatin accessibility and per-cell log10 read depths for each peak independently (`y~x`, where `y` represents a binary numeric vector of accessibility states across cells at a given peak, and `x` represents a vector of log10[sum of accessible peaks] per cell). `Socrates` explicitly avoids overfitting by sampling representative peaks with kernel regression, learning global quasibinomial model parameters (including a term for over-dispersion), and projecting the learned parameters to all peaks (regularization). The models are then used to extract Pearson's residuals that represent read depth-normalized chromatin accessibility profiles for each cell and peak. **Technical Note:** You will need access to 8G memory to run this example. 
 
 ***
 
 
-## Load RRscca and raw data
+## Load Socrates and raw data
 
-Here, we demonstrate how to load the following inputs to create an `RRscca` object:
+Here, we demonstrate how to load the following inputs to create an `Socrates` object:
 
 1. **binary sparse peak x cell matrix** (a gzipped text file in triplet tsv format).
 2. **meta-data** saved as a tsv document containing various per-cell metrics. 
 
-Meta-data is not necessarily required, but useful for evaluating technical effects in clustering, as well as other downstream steps. An example of input data formats for 1,500 PBMC cells and how to construct an `RRscca` object from scratch is shown below. 
+Meta-data is not necessarily required, but useful for evaluating technical effects in clustering, as well as other downstream steps. An example of input data formats for 1,500 PBMC cells and how to construct an `Socrates` object from scratch is shown below. 
 
 ```{r loadRaw, warnings=FALSE}
 # load library
-suppressWarnings(library("RRscca"))
+suppressWarnings(library("Socrates"))
 
-# specify paths to raw data in RRscca package
-input <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.sparse.gz", package="RRscca")
-meta <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.metadata.txt", package="RRscca")
+# specify paths to raw data in Socrates package
+input <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.sparse.gz", package="Socrates")
+meta <- system.file("extdata", "pbmc_atac_10x.1.5K_cells.metadata.txt", package="Socrates")
 
 # load raw data for viewing
 input.format <- read.table(input)
@@ -42,8 +42,8 @@ meta.format <- read.table(meta)
 head(input.format)
 head(meta.format)
 
-# load data into RRscca object
-rrscca.object <- loadSparseData(input=input, meta=meta, verbose=T)
+# load data into Socrates object
+Socrates.object <- loadSparseData(input=input, meta=meta, verbose=T)
 ```
 
 ***
@@ -51,9 +51,9 @@ rrscca.object <- loadSparseData(input=input, meta=meta, verbose=T)
 
 ## Filter peaks and cells
 
-For the remainder of this tutorial, we will work from a 5K PBMC data set publically available from the 10X Genomics [website](https://support.10xgenomics.com/single-cell-atac/datasets/1.2.0/atac_pbmc_10k_nextgem). A precompiled `RRscca` binary object containing this data is automatically available after loading the `RRscca` package.
+For the remainder of this tutorial, we will work from a 5K PBMC data set publically available from the 10X Genomics [website](https://support.10xgenomics.com/single-cell-atac/datasets/1.2.0/atac_pbmc_10k_nextgem). A precompiled `Socrates` binary object containing this data is automatically available after loading the `Socrates` package.
 
-```{r view_RRscca_OBJ}
+```{r view_Socrates_OBJ}
 str(obj)
 ```
 
@@ -128,7 +128,7 @@ Similarity between cells is most easily visualized on two dimensions. Uniform Ma
 obj <- projectUMAP(obj, verbose=T)
 ```
 
-We can quickly visualize the reduced embedding. As you can see below, they are quite similar. In cases where speed and memory usage are central factors, it may be more advisable to use TF-IDF normalization in place of RRscca. One benefit of using model-based approaches is that the normalized values can be readily interpretted for down-stream analyses. 
+We can quickly visualize the reduced embedding. As you can see below, they are quite similar. In cases where speed and memory usage are central factors, it may be more advisable to use TF-IDF normalization in place of Socrates. One benefit of using model-based approaches is that the normalized values can be readily interpretted for down-stream analyses. 
 
 ```{r plotUMAPraw, fig.height=5, fig.width=5}
 # plot UMAP results
@@ -157,15 +157,15 @@ plotUMAP(obj)
 
 ## Saving results
 
-The `RRscca` object is updated iteratively after each processing step. To save results for sharing or future exploration, you can use the following command to save a snapshot of current stage of analysis:
+The `Socrates` object is updated iteratively after each processing step. To save results for sharing or future exploration, you can use the following command to save a snapshot of current stage of analysis:
 
 ```{r savingData, eval=FALSE}
-saveRDS(obj, file="RRscca_object.rds")
+saveRDS(obj, file="Socrates_object.rds")
 ```
 
 ## Accessing results
 
-Results are appended to the `RRscca` object after each function, as described above. Below describes the location of different data sets up to this point.
+Results are appended to the `Socrates` object after each function, as described above. Below describes the location of different data sets up to this point.
 
 * Raw counts 
     + `obj$counts`
