@@ -11,8 +11,6 @@
 #'
 #' @param obj Socrates object. Required.
 #' @param genome path to genome file. See 'inst/extdata/genome' for an example. Required.
-#' @param ann gene annotation file in BED format. See 'inst/extdata/gene_annotation.bed' for an
-#' example. Required.
 #' @param byGroup logical. Whether to run co-accessibility tests for each factor in 'groupID'.
 #' Defaults to False.
 #' @param groupID character. Column name in obj$meta for partitioning during co-accessibility
@@ -34,7 +32,6 @@
 #'
 coAccess <- function(obj,
                      genome=NULL,
-                     ann=NULL,
                      byGroup=FALSE,
                      groupID="LouvainClusters",
                      eFDR=FALSE,
@@ -72,9 +69,6 @@ coAccess <- function(obj,
     if(is.null(genome)){
         stop("! argument 'genome' is required, exiting...")
     }
-    if(is.null(ann)){
-        stop("! argument 'ann' is required, exiting...")
-    }
     if(byGroup==T){
         if(is.null(groupID)){
             stop(" ! argument groupID is required when 'byGroup' is set to TRUE, exiting...")
@@ -89,10 +83,10 @@ coAccess <- function(obj,
 
     # create cicero objects and process
     obs <- as.data.frame(summary(obj$counts))
-    obs$i <- factor(rownames(obj$counts)[obs$i])
-    obs$j <- factor(colnames(obj$counts)[obs$j])
+    obs$i <- as.factor(rownames(obj$counts)[obs$i])
+    obs$j <- as.factor(colnames(obj$counts)[obs$j])
     cds <- make_atac_cds(obs, binarize=T)
-    cds <- cds[,colnames(cds) %in% rownames(obj$meta)]
+    cds <- cds[,colnames(cds) %in% rownames(obj$Clusters)]
     pData(cds) <- obj$Clusters[colnames(exprs(cds)),]
     cds <- cds[Matrix::rowSums(exprs(cds))>0,]
     cds <- cds[,Matrix::colSums(exprs(cds))>0]
@@ -136,8 +130,8 @@ coAccess <- function(obj,
         shufcds <- make_atac_cds(shuf, binarize=T)
 
         # add metadata and filter
-        shufcds <- shufcds[,colnames(shufcds) %in% rownames(obj$meta)]
-        pData(shufcds) <- meta[colnames(exprs(shufcds)),]
+        shufcds <- shufcds[,colnames(shufcds) %in% rownames(obj$Clusters)]
+        pData(shufcds) <- obj$Clusters[colnames(exprs(shufcds)),]
         shufcds <- shufcds[Matrix::rowSums(exprs(shufcds))>0,]
         shufcds <- shufcds[,Matrix::colSums(exprs(shufcds))>0]
 
@@ -146,7 +140,7 @@ coAccess <- function(obj,
         shufcds <- estimateSizeFactors(shufcds)
 
         # update cluster/UMAP info
-        shufcds <- .loadMeta(shufcds, obj$meta)
+        shufcds <- .loadMeta(shufcds, obj$Clusters)
 
         # run cicero by cluster or no
         if(byGroup==TRUE){
@@ -156,7 +150,7 @@ coAccess <- function(obj,
 
             # run in parallel
             outs <- mclapply(clusts, function(z){
-                cluster.ids <- rownames(subset(obj$meta, obj$meta[,groupID]==z))
+                cluster.ids <- rownames(subset(obj$Clusters, obj$Clusters[,groupID]==z))
                 sub.cds <- cds[,colnames(exprs(cds)) %in% cluster.ids]
                 sub.cds <- sub.cds[Matrix::rowSums(exprs(sub.cds))>0,]
                 sub.cds <- sub.cds[,Matrix::colSums(exprs(sub.cds))>0]
