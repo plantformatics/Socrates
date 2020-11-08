@@ -202,7 +202,7 @@ plotUMAP(tfidf.obj, main="TFIDF")
 
 The `Socrates` object is updated iteratively after each processing step. To save results for sharing or future exploration, you can use the following command to save a snapshot of current stage of analysis:
 
-```{r savingData}
+```{r savingData, eval=FALSE}
 saveRDS(obj, file="Socrates_object.rds")
 ```
 
