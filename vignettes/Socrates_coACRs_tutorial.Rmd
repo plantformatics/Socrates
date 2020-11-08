@@ -15,6 +15,9 @@ Clean, normalize and cluster the `Socrates` object that is automatically loaded 
 
 ```{r process}
 
+# load Socrates
+library(Socrates)
+
 # filter, normalize, and reduce dimensions
 obj <- cleanData(obj, min.c=1000, min.t=0.001, max.t=0.005)
 obj <- tfidf(obj)
@@ -25,6 +28,8 @@ obj <- projectUMAP(obj)
 obj <- callClusters(obj, res=0.6)
 
 ```
+
+
 
 ## Identify co-accessible ACRs across all cells
 
@@ -38,6 +43,8 @@ obj <- coAccess(obj, genome=genome)
 
 ```
 
+
+
 ## Identify co-accessible ACRs per cluster
 
 Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function `coAccess`.
@@ -48,3 +55,4 @@ Identifying co-accessible ACRs within each cluster independently is as simple as
 obj <- coAccess(obj, genome=genome, byGroup=T)
 
 ```
+
