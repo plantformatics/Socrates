@@ -113,6 +113,7 @@ coAccess <- function(obj,
                 sub.cds <- sub.cds[,Matrix::colSums(exprs(sub.cds))>0]
                 sub.conns <- runCicero(sub.cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
                 sub.conns$group <- z
+                return(sub.conns)
             }, mc.cores=nthreads)
 
             # join into a single df
@@ -164,9 +165,12 @@ coAccess <- function(obj,
                 sub.conns <- runCicero(sub.cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
                 sub.shufconns <- runCicero(sub.shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
 
-                # do empirical FDR
-                sub.conns$group <- z
+                # get FDR
+                fdr.conns <- getFDR(sub.conns, sub.shufconns, fdr=fdr_threshold)
+                fdr.conns$group <- z
 
+                # return
+                return(fdr.conns)
 
             }, mc.cores=nthreads)
 
@@ -177,9 +181,14 @@ coAccess <- function(obj,
         }else{
             conns1 <- runCicero(cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
             conns2 <- runCicero(shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+            fdr.conns <- getFDR(conn1, conn2, fdr=fdr_threshold)
+            obj[[conn_slotName]] <- fdr.conns
         }
 
     }
+
+    # return
+    return(obj)
 
 }
 
@@ -226,4 +235,81 @@ runCicero <- function(cds,
 
 }
 
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' getFDR
+#'
+#' This function filters coACRs by empirical FDR
+#'
+#' @param observed observed coACRs.
+#' @param expected shuffled coACRs.
+#' @param fdr float. Defaults to 0.05.
+#' @param grid grid size for determining thresholds. Defaults to 100.
+#' @param verbose logical. Defaults to TRUE.
+#'
+#' @rdname getFDR
+#'
+getFDR <- function(obs,
+                   exp,
+                   fdr=0.05,
+                   grid=100,
+                   verbose=F){
+
+    # split into +/-
+    n.exp <- subset(exp, exp$x < 0)
+    p.exp <- subset(exp, exp$x > 0)
+
+    # get counts
+    pos.nexp <- nrow(p.exp)
+    neg.nexp <- nrow(n.exp)
+    pos.nobs <- nrow(subset(obs, obs$x > 0))
+    neg.nobs <- nrow(subset(obs, obs$x < 0))
+    if(verbose){message(" - number expected links = (+) ",pos.nexp, " | (-) ",neg.nexp)}
+    if(verbose){message(" - number observed links = (+) ",pos.nobs, " | (-) ",neg.nobs)}
+
+    # generate range of thresholds
+    p.vals <- seq(from=0, to=1, length.out=grid)
+    n.vals <- seq(from=0, to= -1, length.out=grid)
+
+    # iterate over grid
+    if(verbose){message(" - scanning positive thresholds ...")}
+    p.thresh <- c()
+    for(i in p.vals){
+        num.exp <- nrow(subset(p.exp, p.exp$x > i))
+        c.fdr <- num.exp/(pos.nexp)
+        if(is.na(c.fdr)){
+            c.fdr <- 0
+        }
+        p.thresh <- c(p.thresh, c.fdr)
+        if(verbose){message(" - (+) correlation threshold = ", i, " | FDR = ", c.fdr)}
+    }
+    if(verbose){message(" - scanning negative thresholds ...")}
+    n.thresh <- c()
+    for(i in n.vals){
+        num.exp <- nrow(subset(n.exp, n.exp$x < i))
+        c.fdr <- num.exp/(neg.nexp)
+        if(is.na(c.fdr)){
+            c.fdr <- 0
+        }
+        n.thresh <- c(n.thresh, c.fdr)
+        if(verbose){message(" - (-) correlation threshold = ", i, " | FDR = ", c.fdr)}
+    }
+
+    # select cut-offs
+    p.threshold <- min(p.vals[which(p.thresh <= fdr)])
+    n.threshold <- max(n.vals[which(n.thresh <= fdr)])
+
+    # filter
+    obs <- subset(obs, obs$x > p.threshold | obs$x < n.threshold)
+
+    # verbose number of +/- linkages
+    pos.links <- nrow(subset(obs, obs$x > 0))
+    neg.links <- nrow(subset(obs, obs$x < 0))
+    if(verbose){message(" - found ",pos.links, " + and ", neg.links," - ACR-ACR links ...")}
+
+    # return
+    return(obs)
+}
 

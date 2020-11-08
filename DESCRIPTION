@@ -1,5 +1,5 @@
 Package: Socrates
-Title: What the Package Does (One Line, Title Case)
+Title: Analysis of scATAC-seq data
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Alexandre",
@@ -14,5 +14,7 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+biocViews:
 Depends: 
-    R (>= 3.6.3)
+    R (>= 3.6.3),
+    cicero (>= 1.4.4)
