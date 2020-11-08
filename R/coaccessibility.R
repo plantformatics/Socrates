@@ -48,7 +48,7 @@ coAccess <- function(obj,
 
         # svd and raw
         ids <- colnames(cds)
-        meta <- jac[ids,]
+        meta <- meta[ids,]
         meta$UMAP1 <- meta$umap1
         meta$UMAP2 <- meta$umap2
         ids.2 <- rownames(meta)
