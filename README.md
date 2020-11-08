@@ -1,4 +1,4 @@
-# RRscca
+# Socrates
 
 ![](https://github.com/plantformatics/Socrates/blob/master/tutorial_figures/Socrates_home_image.png)
 
