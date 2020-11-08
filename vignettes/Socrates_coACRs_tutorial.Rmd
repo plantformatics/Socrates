@@ -26,13 +26,25 @@ obj <- callClusters(obj, res=0.6)
 
 ```
 
-## Identify co-accessible ACRs
+## Identify co-accessible ACRs across all cells
 
 To find co-accessible ACRs, `Socrates` needs a few annotation files, including a path to the reference genome and gene coordinates. Below is a quick example of how to identify co-accessible ACRs using all barcodes.
 
 ```{r coACRs-1}
 
 # find co-accessible ACRs in the entire data set (not subset by cluster)
-obj <- coAccess(obj, genome=)
+genome <- system.file("extdata", "hg19.txt", package="Socrates")
+obj <- coAccess(obj, genome=genome)
+
+```
+
+## Identify co-accessible ACRs per cluster
+
+Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function `coAccess`.
+
+```{r coACRs-1}
+
+# find co-accessible ACRs by cluster
+obj <- coAccess(obj, genome=genome, byGroup=T)
 
 ```

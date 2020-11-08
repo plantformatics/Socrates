@@ -79,7 +79,7 @@ coAccess <- function(obj,
         if(is.null(groupID)){
             stop(" ! argument groupID is required when 'byGroup' is set to TRUE, exiting...")
         }
-        if(!groupID %in% colnames(obj$meta)){
+        if(!groupID %in% colnames(obj$Clusters)){
             stop(" ! argument groupID must be a column name in the 'meta' slot of obj, exiting...")
         }
     }
@@ -93,12 +93,12 @@ coAccess <- function(obj,
     obs$j <- factor(colnames(obj$counts)[obs$j])
     cds <- make_atac_cds(obs, binarize=T)
     cds <- cds[,colnames(cds) %in% rownames(obj$meta)]
-    pData(cds) <- meta[colnames(exprs(cds)),]
+    pData(cds) <- obj$Clusters[colnames(exprs(cds)),]
     cds <- cds[Matrix::rowSums(exprs(cds))>0,]
     cds <- cds[,Matrix::colSums(exprs(cds))>0]
     cds <- detectGenes(cds)
     cds <- estimateSizeFactors(cds)
-    cds <- .loadMeta(cds, obj$meta)
+    cds <- .loadMeta(cds, obj$Clusters)
 
     # run per cluster or not
     if(eFDR==FALSE){
@@ -106,11 +106,11 @@ coAccess <- function(obj,
         if(byGroup==TRUE){
 
             # get cluster ids
-            clusts <- unique(obj$meta[,groupID])
+            clusts <- unique(obj$Clusters[,groupID])
 
             # run in parallel
             outs <- mclapply(clusts, function(z){
-                cluster.ids <- rownames(subset(obj$meta, obj$meta[,groupID]==z))
+                cluster.ids <- rownames(subset(obj$Clusters, obj$Clusters[,groupID]==z))
                 sub.cds <- cds[,colnames(exprs(cds)) %in% cluster.ids]
                 sub.cds <- sub.cds[Matrix::rowSums(exprs(sub.cds))>0,]
                 sub.cds <- sub.cds[,Matrix::colSums(exprs(sub.cds))>0]
