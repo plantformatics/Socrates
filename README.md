@@ -36,11 +36,6 @@ Current release: 10/27/20 BETA v0.0.9
 `Socates` requires R v3.6.3 or greater. 
 
 ```
-# install Cicero to use Socrates co-accessible ACR calling functions
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install("cicero")
-
 # download the devtools package if not currently installed
 install.packages("devtools")
 library(devtools)
