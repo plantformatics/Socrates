@@ -7,7 +7,6 @@
 coAccess(
   obj,
   genome = NULL,
-  ann = NULL,
   byGroup = FALSE,
   groupID = "LouvainClusters",
   eFDR = FALSE,
@@ -24,9 +23,6 @@ coAccess(
 \item{obj}{Socrates object. Required.}
 
 \item{genome}{path to genome file. See 'inst/extdata/genome' for an example. Required.}
-
-\item{ann}{gene annotation file in BED format. See 'inst/extdata/gene_annotation.bed' for an
-example. Required.}
 
 \item{byGroup}{logical. Whether to run co-accessibility tests for each factor in 'groupID'.
 Defaults to False.}
