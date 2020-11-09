@@ -92,7 +92,7 @@ coAccess <- function(obj,
     cds <- cds[,Matrix::colSums(exprs(cds))>0]
     cds <- detectGenes(cds)
     cds <- estimateSizeFactors(cds)
-    cds <- .loadMeta(cds, obj$Clusters)
+    cds <- .loadMeta(cds, obj$Clusters, groupID)
 
     # run per cluster or not
     if(eFDR==FALSE){
