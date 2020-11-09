@@ -33,12 +33,20 @@ obj <- callClusters(obj, res=0.6)
 
 ## Identify co-accessible ACRs across all cells
 
-To find co-accessible ACRs, `Socrates` needs a few annotation files, including a path to the reference genome and gene coordinates. Below is a quick example of how to identify co-accessible ACRs using all barcodes.
+To find co-accessible ACRs, `Socrates` needs a path to the reference genome. A chromosome lengths file for hg19 is provided in `Socrates`. 
 
-```{r coACRs-1}
+```{r}
+
+# get genome annotation
+genome <- system.file("extdata", "hg19.txt", package="Socrates")
+```
+
+
+`Socrates` relies on the R package `cicero`, developed by the Trapenll and Shendure labs to identify co-accessible ACRs. Please cite their work (here) if using `Socrates` to identify co-accessible regions.
+
+```{r coACRs-default, eval=FALSE}
 
 # find co-accessible ACRs in the entire data set (not subset by cluster)
-genome <- system.file("extdata", "hg19.txt", package="Socrates")
 obj <- coAccess(obj, genome=genome)
 
 ```
@@ -47,12 +55,27 @@ obj <- coAccess(obj, genome=genome)
 
 ## Identify co-accessible ACRs per cluster
 
-Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function `coAccess`.
+Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function `coAccess`. Co-accessible ACRs are identified by each group in the `groupID` column of the meta data table `obj$Clusters` slot. The default `groupID` is "LouvainClusters", which is the default column name for the function `callClusters`. See `?callClusters` and `?coAccess` for more details.
 
-```{r coACRs-1}
+```{r coACRs-group, eval=FALSE}
 
 # find co-accessible ACRs by cluster
 obj <- coAccess(obj, genome=genome, byGroup=T)
 
 ```
 
+
+
+## Empirical FDR to control false positives
+
+Removing false positive links based solely on the degree of co-accessibility is a challenge because different clusters/cell types are afflicted by varying degrees of technical variation, such as read depth. A simple approach to estimate the false discovery rate is to shuffle the ACR x barcode matrix, keeping the number of accessible ACRs per cell and the number of accessible cells per ACR identical to the original matrix. Co-accessible ACR identification is repeated and heuristic thresholds removing 95% (or other FDRs of the users choice) of co-accessible ACRs from the shuffled matrix (for positive and negatively associated ACRs) are identified. These thresholds are then applied to the original, non-shuffled matrix, resembling FDR controlled co-accessible ACRs. Users can mix and match the various approaches described here. An example is illustrated below.
+
+```{r coACRs-eFDR}
+
+# find co-accessible ACRs with eFDR
+obj <- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05)
+
+# co-accessible ACRs are stored in the 'obj$coACR' slot. 
+head(obj$coACRs)
+
+```

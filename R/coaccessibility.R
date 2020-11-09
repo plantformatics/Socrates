@@ -140,13 +140,13 @@ coAccess <- function(obj,
         shufcds <- estimateSizeFactors(shufcds)
 
         # update cluster/UMAP info
-        shufcds <- .loadMeta(shufcds, obj$Clusters)
+        shufcds <- .loadMeta(shufcds, obj$Clusters, groupID)
 
         # run cicero by cluster or no
         if(byGroup==TRUE){
 
             # get cluster ids
-            clusts <- unique(obj$meta[,groupID])
+            clusts <- unique(obj$Clusters[,groupID])
 
             # run in parallel
             outs <- mclapply(clusts, function(z){
@@ -273,7 +273,7 @@ getFDR <- function(obs,
     if(verbose){message(" - scanning positive thresholds ...")}
     p.thresh <- c()
     for(i in p.vals){
-        num.exp <- nrow(subset(p.exp, p.exp$x > i))
+        num.exp <- sum(p.exp$x > as.numeric(i))
         c.fdr <- num.exp/(pos.nexp)
         if(is.na(c.fdr)){
             c.fdr <- 0
@@ -284,7 +284,7 @@ getFDR <- function(obs,
     if(verbose){message(" - scanning negative thresholds ...")}
     n.thresh <- c()
     for(i in n.vals){
-        num.exp <- nrow(subset(n.exp, n.exp$x < i))
+        num.exp <- sum(n.exp$x < as.numeric(i))
         c.fdr <- num.exp/(neg.nexp)
         if(is.na(c.fdr)){
             c.fdr <- 0
