@@ -42,7 +42,7 @@ genome <- system.file("extdata", "hg19.txt", package="Socrates")
 ```
 
 
-`Socrates` relies on the R package `cicero`, developed by the Trapenll and Shendure labs to identify co-accessible ACRs. Please cite their work (here) if using `Socrates` to identify co-accessible regions.
+`Socrates` relies on the R package `cicero`, developed by the Trapenll and Shendure labs to identify co-accessible ACRs. Please cite their work [here](https://www.cell.com/molecular-cell/fulltext/S1097-2765(18)30547-1#%20) if using `Socrates` to identify co-accessible regions. For more information and documentation for `cicero`, visit the software website site [here](https://cole-trapnell-lab.github.io/cicero-release/docs/#references).
 
 ```{r coACRs-default, eval=FALSE}
 

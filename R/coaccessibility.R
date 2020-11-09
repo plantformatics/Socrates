@@ -178,7 +178,7 @@ coAccess <- function(obj,
         }else{
             conns1 <- runCicero(cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
             conns2 <- runCicero(shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
-            fdr.conns <- getFDR(conn1, conns2, fdr=fdr_threshold)
+            fdr.conns <- getFDR(conns1, conns2, fdr=fdr_threshold)
             obj[[conn_slotName]] <- fdr.conns
         }
 
