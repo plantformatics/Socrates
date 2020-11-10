@@ -109,6 +109,7 @@ coAccess <- function(obj,
                 sub.cds <- sub.cds[Matrix::rowSums(exprs(sub.cds))>0,]
                 sub.cds <- sub.cds[,Matrix::colSums(exprs(sub.cds))>0]
                 sub.conns <- runCicero(sub.cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+                if(verbose){message(" - found ", nrow(sub.conns), " potential co-accessible ACRs in group ",z, "...")}
                 sub.conns$group <- z
                 return(sub.conns)
             }, mc.cores=nthreads)
@@ -119,6 +120,7 @@ coAccess <- function(obj,
 
         }else{
             obj[[conn_slotName]] <- runCicero(cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+            if(verbose){message(" - found ", nrow(obj[[conn_slotName]]), " potential co-accessible ACRs ...")}
         }
 
     }else{
@@ -160,10 +162,12 @@ coAccess <- function(obj,
 
                 # run
                 sub.conns <- runCicero(sub.cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+                if(verbose){message(" - found ", nrow(sub.conns), " potential co-accessible ACRs in original group ",z, "...")}
                 sub.shufconns <- runCicero(sub.shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+                if(verbose){message(" - found ", nrow(sub.conns), " potential co-accessible ACRs in shuffled group ",z, "...")}
 
                 # get FDR
-                fdr.conns <- getFDR(sub.conns, sub.shufconns, fdr=fdr_threshold, verbose=verbose)
+                fdr.conns <- getFDR(sub.conns, sub.shufconns, fdr=fdr_thresh, verbose=verbose)
                 fdr.conns$group <- z
 
                 # return
@@ -177,7 +181,9 @@ coAccess <- function(obj,
 
         }else{
             conns1 <- runCicero(cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+            if(verbose){message(" - found ", nrow(conns1), " potential co-accessible ACRs in observed data ...")}
             conns2 <- runCicero(shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
+            if(verbose){message(" - found ", nrow(conns2), " potential co-accessible ACRs in expected data ...")}
             fdr.conns <- getFDR(conns1, conns2, fdr=fdr_thresh, verbose=verbose)
             obj[[conn_slotName]] <- fdr.conns
         }

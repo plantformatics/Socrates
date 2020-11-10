@@ -9,11 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Quick preprocessing
+## Pre0processing
 
 Clean, normalize and cluster the `Socrates` object that is automatically loaded into the namespace with the package. In this example, we will use `tfidf` for a bit of a speed-up over other available options.
 
-```{r process}
+```{r process, message=FALSE}
 
 # load Socrates
 library(Socrates)
@@ -44,6 +44,8 @@ genome <- system.file("extdata", "hg19.txt", package="Socrates")
 
 `Socrates` relies on the R package `cicero`, developed by the Trapenll and Shendure labs to identify co-accessible ACRs. Please cite their work [here](https://www.cell.com/molecular-cell/fulltext/S1097-2765(18)30547-1#%20) if using `Socrates` to identify co-accessible regions. For more information and documentation for `cicero`, visit the software website site [here](https://cole-trapnell-lab.github.io/cicero-release/docs/#references).
 
+In the example below, we will identify co-accessible ACRs using all cells by aggregating k=30 nearest neighbors from the UMAP embedding. Users can adjust various parameters that are provided by `cicero`, in addition to added functionalities explored later in this tutorial. 
+
 ```{r coACRs-default, eval=FALSE}
 
 # find co-accessible ACRs in the entire data set (not subset by cluster)
@@ -55,7 +57,7 @@ obj <- coAccess(obj, genome=genome)
 
 ## Identify co-accessible ACRs per cluster
 
-Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function `coAccess`. Co-accessible ACRs are identified by each group in the `groupID` column of the meta data table `obj$Clusters` slot. The default `groupID` is "LouvainClusters", which is the default column name for the function `callClusters`. See `?callClusters` and `?coAccess` for more details.
+In addition to standard co-accessible ACR calling across all cells, `Socrates` facilitate cluster/cell type-level resolution for co-accessible ACR identification. Essentially, `Socrates` splits cells into their cognate groups, and runs `cicero` on each of these groups, independtly. Running `Socrates` on each cluster/cell type is simple as specifying an additional parameter in the function `coAccess`. Co-accessible ACRs are identified for each group in the `groupID` column of the meta data table `obj$Clusters` slot. The default `groupID` is "LouvainClusters", which is the default column name for the function `callClusters`. See `?callClusters` and `?coAccess` for more details. An example command is illustrated below.
 
 ```{r coACRs-group, eval=FALSE}
 
@@ -73,7 +75,7 @@ Removing false positive links based solely on the degree of co-accessibility is 
 ```{r coACRs-eFDR}
 
 # find co-accessible ACRs with eFDR
-obj <- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05)
+obj <- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05, verbose=T)
 
 # co-accessible ACRs are stored in the 'obj$coACR' slot. 
 head(obj$coACRs)
