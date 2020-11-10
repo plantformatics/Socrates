@@ -231,6 +231,8 @@ runCicero <- function(cds,
 
     # run cicero (connections)
     conns <- run_cicero(cicero_cds, genome, window=win, sample_num=sample_num, silent=silent)
+    conns$coaccess[is.na(conns$coaccess)] <- 0
+    colnames(conns) <- c("i","j","x")
 
     # return
     return(conns)
