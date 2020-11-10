@@ -163,7 +163,7 @@ coAccess <- function(obj,
                 sub.shufconns <- runCicero(sub.shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
 
                 # get FDR
-                fdr.conns <- getFDR(sub.conns, sub.shufconns, fdr=fdr_threshold)
+                fdr.conns <- getFDR(sub.conns, sub.shufconns, fdr=fdr_threshold, verbose=verbose)
                 fdr.conns$group <- z
 
                 # return
@@ -178,7 +178,7 @@ coAccess <- function(obj,
         }else{
             conns1 <- runCicero(cds, genome=genome, k=k, win=win_size, sample_num=sample_num)
             conns2 <- runCicero(shufcds, genome=genome, k=k, win=win_size, sample_num=sample_num)
-            fdr.conns <- getFDR(conns1, conns2, fdr=fdr_thresh)
+            fdr.conns <- getFDR(conns1, conns2, fdr=fdr_thresh, verbose=verbose)
             obj[[conn_slotName]] <- fdr.conns
         }
 
