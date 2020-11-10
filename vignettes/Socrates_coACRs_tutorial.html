@@ -217,13 +217,13 @@ obj &lt;- callClusters(obj, res=0.6)</code></pre>
 ## Warning: The following arguments are not used: reduction</code></pre>
 <pre><code>## Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
 ## 
-## Number of nodes: 4883
-## Number of edges: 366344
+## Number of nodes: 4918
+## Number of edges: 374177
 ## 
 ## Running Louvain algorithm...
-## Maximum modularity in 100 random starts: 0.8746
-## Number of communities: 13
-## Elapsed time: 5 seconds</code></pre>
+## Maximum modularity in 100 random starts: 0.8708
+## Number of communities: 11
+## Elapsed time: 7 seconds</code></pre>
 </div>
 <div id="identify-co-accessible-acrs-across-all-cells" class="section level2">
 <h2>Identify co-accessible ACRs across all cells</h2>
@@ -249,229 +249,41 @@ obj &lt;- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05, verbose=T)</c
 <pre><code>## Overlap QC metrics:
 ## Cells per bin: 30
 ## Maximum shared cells bin-bin: 26
-## Mean shared cells bin-bin: 0.203676494858
+## Mean shared cells bin-bin: 0.198456372147237
 ## Median shared cells bin-bin: 0</code></pre>
 <pre><code>##  - found 3980294 potential co-accessible ACRs in observed data ...</code></pre>
 <pre><code>## Overlap QC metrics:
 ## Cells per bin: 30
 ## Maximum shared cells bin-bin: 26
-## Mean shared cells bin-bin: 0.204192591525871
+## Mean shared cells bin-bin: 0.197579735079735
 ## Median shared cells bin-bin: 0</code></pre>
 <pre><code>##  - found 3980294 potential co-accessible ACRs in expected data ...</code></pre>
-<pre><code>##  - number expected links = (+) 955308 | (-) 956158</code></pre>
-<pre><code>##  - number observed links = (+) 975710 | (-) 718568</code></pre>
+<pre><code>##  - number expected links = (+) 751852 | (-) 748532</code></pre>
+<pre><code>##  - number observed links = (+) 1013242 | (-) 748064</code></pre>
 <pre><code>##  - scanning positive thresholds ...</code></pre>
 <pre><code>##  - (+) correlation threshold = 0 | FDR = 1</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0101010101010101 | FDR = 0.154268570973969</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0202020202020202 | FDR = 0.112876684796945</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0303030303030303 | FDR = 0.0859283079383822</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0404040404040404 | FDR = 0.0645132250541187</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0505050505050505 | FDR = 0.0475616241044773</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0606060606060606 | FDR = 0.0344244997424914</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0707070707070707 | FDR = 0.024662203184732</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0808080808080808 | FDR = 0.0172467937042294</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.0909090909090909 | FDR = 0.0118558621931356</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.101010101010101 | FDR = 0.00799951429277259</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.111111111111111 | FDR = 0.00519622990700381</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.121212121212121 | FDR = 0.00334133075406047</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.131313131313131 | FDR = 0.00214590477626064</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.141414141414141 | FDR = 0.00126660720940262</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.151515151515152 | FDR = 0.000755777194370821</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.161616161616162 | FDR = 0.000429180955252128</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.171717171717172 | FDR = 0.000226105088620633</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.181818181818182 | FDR = 0.000138175331934831</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.191919191919192 | FDR = 8.58361910504256e-05</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.202020202020202 | FDR = 5.23391408844059e-05</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.212121212121212 | FDR = 3.34970501660198e-05</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.222222222222222 | FDR = 1.67485250830099e-05</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.232323232323232 | FDR = 1.04678281768812e-05</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.242424242424242 | FDR = 8.37426254150494e-06</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.252525252525253 | FDR = 4.18713127075247e-06</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.262626262626263 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.272727272727273 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.282828282828283 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.292929292929293 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.303030303030303 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.313131313131313 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.323232323232323 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.333333333333333 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.343434343434343 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.353535353535354 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.363636363636364 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.373737373737374 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.383838383838384 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.393939393939394 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.404040404040404 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.414141414141414 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.424242424242424 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.434343434343434 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.444444444444444 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.454545454545455 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.464646464646465 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.474747474747475 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.484848484848485 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.494949494949495 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.505050505050505 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.515151515151515 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.525252525252525 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.535353535353535 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.545454545454546 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.555555555555556 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.565656565656566 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.575757575757576 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.585858585858586 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.595959595959596 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.606060606060606 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.616161616161616 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.626262626262626 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.636363636363636 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.646464646464647 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.656565656565657 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.666666666666667 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.676767676767677 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.686868686868687 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.696969696969697 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.707070707070707 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.717171717171717 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.727272727272727 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.737373737373737 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.747474747474748 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.757575757575758 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.767676767676768 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.777777777777778 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.787878787878788 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.797979797979798 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.808080808080808 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.818181818181818 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.828282828282828 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.838383838383838 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.848484848484849 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.858585858585859 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.868686868686869 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.878787878787879 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.888888888888889 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.898989898989899 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.909090909090909 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.919191919191919 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.929292929292929 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.939393939393939 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.94949494949495 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.95959595959596 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.96969696969697 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.97979797979798 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 0.98989898989899 | FDR = 0</code></pre>
-<pre><code>##  - (+) correlation threshold = 1 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0101010101010101 | FDR = 0.14481307491368</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0202020202020202 | FDR = 0.106318796784474</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0303030303030303 | FDR = 0.0797470778823492</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0404040404040404 | FDR = 0.0590914169277996</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0505050505050505 | FDR = 0.0428674792379351</code></pre>
 <pre><code>##  - scanning negative thresholds ...</code></pre>
 <pre><code>##  - (-) correlation threshold = 0 | FDR = 1</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0101010101010101 | FDR = 0.151820096678582</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0202020202020202 | FDR = 0.110199360356761</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0303030303030303 | FDR = 0.0830051100341157</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0404040404040404 | FDR = 0.0620650561936416</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0505050505050505 | FDR = 0.0455447739808693</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0606060606060606 | FDR = 0.032567839206491</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0707070707070707 | FDR = 0.0230171164179979</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0808080808080808 | FDR = 0.015865578701428</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.0909090909090909 | FDR = 0.0106300423151822</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.101010101010101 | FDR = 0.00704904419562457</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.111111111111111 | FDR = 0.00453481537570151</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.121212121212121 | FDR = 0.00287609369999519</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.131313131313131 | FDR = 0.00185325019505145</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.141414141414141 | FDR = 0.00112742873039811</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.151515151515152 | FDR = 0.000675620556435234</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.161616161616162 | FDR = 0.000382781925162996</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.171717171717172 | FDR = 0.000217537268945091</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.181818181818182 | FDR = 0.000135960793090682</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.191919191919192 | FDR = 6.90262487998845e-05</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.202020202020202 | FDR = 3.76506811635734e-05</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.212121212121212 | FDR = 1.88253405817867e-05</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.222222222222222 | FDR = 8.36681803634964e-06</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.232323232323232 | FDR = 4.18340901817482e-06</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.242424242424242 | FDR = 2.09170450908741e-06</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.252525252525253 | FDR = 2.09170450908741e-06</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.262626262626263 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.272727272727273 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.282828282828283 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.292929292929293 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.303030303030303 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.313131313131313 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.323232323232323 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.333333333333333 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.343434343434343 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.353535353535354 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.363636363636364 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.373737373737374 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.383838383838384 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.393939393939394 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.404040404040404 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.414141414141414 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.424242424242424 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.434343434343434 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.444444444444444 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.454545454545455 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.464646464646465 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.474747474747475 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.484848484848485 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.494949494949495 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.505050505050505 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.515151515151515 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.525252525252525 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.535353535353535 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.545454545454546 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.555555555555556 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.565656565656566 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.575757575757576 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.585858585858586 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.595959595959596 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.606060606060606 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.616161616161616 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.626262626262626 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.636363636363636 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.646464646464647 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.656565656565657 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.666666666666667 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.676767676767677 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.686868686868687 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.696969696969697 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.707070707070707 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.717171717171717 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.727272727272727 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.737373737373737 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.747474747474748 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.757575757575758 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.767676767676768 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.777777777777778 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.787878787878788 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.797979797979798 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.808080808080808 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.818181818181818 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.828282828282828 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.838383838383838 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.848484848484849 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.858585858585859 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.868686868686869 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.878787878787879 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.888888888888889 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.898989898989899 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.909090909090909 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.919191919191919 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.929292929292929 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.939393939393939 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.94949494949495 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.95959595959596 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.96969696969697 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.97979797979798 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -0.98989898989899 | FDR = 0</code></pre>
-<pre><code>##  - (-) correlation threshold = -1 | FDR = 0</code></pre>
-<pre><code>##  - found 557516 + and 379484 - ACR-ACR links ...</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0101010101010101 | FDR = 0.143058680190025</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0202020202020202 | FDR = 0.104105101719098</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0303030303030303 | FDR = 0.0781315962443823</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0404040404040404 | FDR = 0.0576595255780648</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0505050505050505 | FDR = 0.0415399742429181</code></pre>
+<pre><code>##  - found 579574 + and 393280 - ACR-ACR links ...</code></pre>
 <pre class="r"><code># co-accessible ACRs are stored in the 'obj$coACR' slot. 
 head(obj$coACRs)</code></pre>
 <pre><code>##                            i                         j           x
-## 4  chr10_100019515_100020156   chr10_99893896_99895390 -0.18370563
-## 11 chr10_100019515_100020156 chr10_100055103_100055702  0.07856416
-## 13 chr10_100019515_100020156 chr10_100074247_100074797  0.24209781
-## 14 chr10_100019515_100020156 chr10_100075969_100076870  0.20875253
-## 15 chr10_100019515_100020156 chr10_100082828_100083560  0.47745105
-## 17 chr10_100019515_100020156 chr10_100099384_100100351 -0.10952863</code></pre>
+## 4  chr10_100019515_100020156   chr10_99893896_99895390 -0.19975842
+## 11 chr10_100019515_100020156 chr10_100055103_100055702  0.08851144
+## 13 chr10_100019515_100020156 chr10_100074247_100074797  0.29314199
+## 14 chr10_100019515_100020156 chr10_100075969_100076870  0.22547908
+## 15 chr10_100019515_100020156 chr10_100082828_100083560  0.53423930
+## 17 chr10_100019515_100020156 chr10_100099384_100100351 -0.13310545</code></pre>
 </div>
 
 
