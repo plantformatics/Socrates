@@ -195,63 +195,11 @@ summary {
 </div>
 
 
-<div id="quick-preprocessing" class="section level2">
-<h2>Quick preprocessing</h2>
+<div id="pre0processing" class="section level2">
+<h2>Pre0processing</h2>
 <p>Clean, normalize and cluster the <code>Socrates</code> object that is automatically loaded into the namespace with the package. In this example, we will use <code>tfidf</code> for a bit of a speed-up over other available options.</p>
 <pre class="r"><code># load Socrates
 library(Socrates)</code></pre>
-<pre><code>## Loading required package: cicero</code></pre>
-<pre><code>## Loading required package: monocle</code></pre>
-<pre><code>## Loading required package: Matrix</code></pre>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Loading required package: BiocGenerics</code></pre>
-<pre><code>## Loading required package: parallel</code></pre>
-<pre><code>## 
-## Attaching package: 'BiocGenerics'</code></pre>
-<pre><code>## The following objects are masked from 'package:parallel':
-## 
-##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-##     clusterExport, clusterMap, parApply, parCapply, parLapply,
-##     parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
-<pre><code>## The following object is masked from 'package:Matrix':
-## 
-##     which</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
-##     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-##     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-##     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
-##     union, unique, unsplit, which, which.max, which.min</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with
-##     'browseVignettes()'. To cite Bioconductor, see
-##     'citation(&quot;Biobase&quot;)', and for packages 'citation(&quot;pkgname&quot;)'.</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Loading required package: VGAM</code></pre>
-<pre><code>## Loading required package: stats4</code></pre>
-<pre><code>## Loading required package: splines</code></pre>
-<pre><code>## Loading required package: DDRTree</code></pre>
-<pre><code>## Loading required package: irlba</code></pre>
-<pre><code>## Loading required package: Gviz</code></pre>
-<pre><code>## Loading required package: S4Vectors</code></pre>
-<pre><code>## 
-## Attaching package: 'S4Vectors'</code></pre>
-<pre><code>## The following object is masked from 'package:Matrix':
-## 
-##     expand</code></pre>
-<pre><code>## The following object is masked from 'package:base':
-## 
-##     expand.grid</code></pre>
-<pre><code>## Loading required package: IRanges</code></pre>
-<pre><code>## Loading required package: GenomicRanges</code></pre>
-<pre><code>## Loading required package: GenomeInfoDb</code></pre>
-<pre><code>## Loading required package: grid</code></pre>
 <pre><code>## Warning: replacing previous import 'DelayedArray::which' by 'Matrix::which' when
 ## loading 'Socrates'</code></pre>
 <pre class="r"><code># filter, normalize, and reduce dimensions
@@ -264,21 +212,18 @@ obj &lt;- projectUMAP(obj)
 obj &lt;- callClusters(obj, res=0.6)</code></pre>
 <pre><code>## Warning: Feature names cannot have underscores ('_'), replacing with dashes
 ## ('-')</code></pre>
-<pre><code>## Computing nearest neighbor graph</code></pre>
-<pre><code>## Computing SNN</code></pre>
-<pre><code>## Warning: The following arguments are not used: reduction</code></pre>
-<pre><code>## Warning: The following arguments are not used: reduction</code></pre>
+<pre><code>## Warning: The following arguments are not used: reduction
+
+## Warning: The following arguments are not used: reduction</code></pre>
 <pre><code>## Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
 ## 
-## Number of nodes: 4878
-## Number of edges: 369671
+## Number of nodes: 4883
+## Number of edges: 366344
 ## 
 ## Running Louvain algorithm...
-## Maximum modularity in 100 random starts: 0.8734
-## Number of communities: 12
+## Maximum modularity in 100 random starts: 0.8746
+## Number of communities: 13
 ## Elapsed time: 5 seconds</code></pre>
-<pre><code>## 2 singletons identified. 10 final clusters.</code></pre>
-<pre><code>##    * total number of cells surviving subcluster filtering = 4843</code></pre>
 </div>
 <div id="identify-co-accessible-acrs-across-all-cells" class="section level2">
 <h2>Identify co-accessible ACRs across all cells</h2>
@@ -286,34 +231,247 @@ obj &lt;- callClusters(obj, res=0.6)</code></pre>
 <pre class="r"><code># get genome annotation
 genome &lt;- system.file(&quot;extdata&quot;, &quot;hg19.txt&quot;, package=&quot;Socrates&quot;)</code></pre>
 <p><code>Socrates</code> relies on the R package <code>cicero</code>, developed by the Trapenll and Shendure labs to identify co-accessible ACRs. Please cite their work <a href="https://www.cell.com/molecular-cell/fulltext/S1097-2765(18)30547-1#%20">here</a> if using <code>Socrates</code> to identify co-accessible regions. For more information and documentation for <code>cicero</code>, visit the software website site <a href="https://cole-trapnell-lab.github.io/cicero-release/docs/#references">here</a>.</p>
+<p>In the example below, we will identify co-accessible ACRs using all cells by aggregating k=30 nearest neighbors from the UMAP embedding. Users can adjust various parameters that are provided by <code>cicero</code>, in addition to added functionalities explored later in this tutorial.</p>
 <pre class="r"><code># find co-accessible ACRs in the entire data set (not subset by cluster)
 obj &lt;- coAccess(obj, genome=genome)</code></pre>
 </div>
 <div id="identify-co-accessible-acrs-per-cluster" class="section level2">
 <h2>Identify co-accessible ACRs per cluster</h2>
-<p>Identifying co-accessible ACRs within each cluster independently is as simple as specifying an additional parameter in the function <code>coAccess</code>. Co-accessible ACRs are identified by each group in the <code>groupID</code> column of the meta data table <code>obj$Clusters</code> slot. The default <code>groupID</code> is &quot;LouvainClusters&quot;, which is the default column name for the function <code>callClusters</code>. See <code>?callClusters</code> and <code>?coAccess</code> for more details.</p>
+<p>In addition to standard co-accessible ACR calling across all cells, <code>Socrates</code> facilitate cluster/cell type-level resolution for co-accessible ACR identification. Essentially, <code>Socrates</code> splits cells into their cognate groups, and runs <code>cicero</code> on each of these groups, independtly. Running <code>Socrates</code> on each cluster/cell type is simple as specifying an additional parameter in the function <code>coAccess</code>. Co-accessible ACRs are identified for each group in the <code>groupID</code> column of the meta data table <code>obj$Clusters</code> slot. The default <code>groupID</code> is &quot;LouvainClusters&quot;, which is the default column name for the function <code>callClusters</code>. See <code>?callClusters</code> and <code>?coAccess</code> for more details. An example command is illustrated below.</p>
 <pre class="r"><code># find co-accessible ACRs by cluster
 obj &lt;- coAccess(obj, genome=genome, byGroup=T)</code></pre>
 </div>
 <div id="empirical-fdr-to-control-false-positives" class="section level2">
 <h2>Empirical FDR to control false positives</h2>
-<p>Removing false positive links based solely on the degree of co-accessibility is a challenge because different clusters/cell types are afflicted by varying degrees of technical variation, such as read depth. A simple approach to estimate the false discovery rate is to shuffle the ACR x barcode matrix, keeping the number of accessible ACRs per cell and the number of accessible cells per ACR identical to the original matrix. Co-accessible ACR identification is repeated and heuristic thresholds removing 95% (or other FDRs of the users choice) of co-accessible ACRs from the shuffled matrix (for positive and negatively associated ACRs) are identified. These thresholds are then applied to the original, non-shuffled matrix, resembling FDR controlled co-accessible ACRs. Users can mix and match the various approaches described here. An example is illustrated below.</p>
+<p>Removing false positive links based solely on the degree of co-accessibility is a challenge because different clusters/cell types are afflicted by varying degrees of technical variation, such as read depth. A simple approach to estimate the false discovery rate is to shuffle the ACR x barcode matrix, keeping the number of accessible ACRs per cell and the number of accessible cells per ACR identical to the original matrix. Co-accessible ACR identification is repeated and heuristic thresholds removing 95% (or other FDRs of the users choice) of co-accessible ACRs from the shuffled matrix (for positive and negatively associated ACRs) are identified. These thresholds are then applied to the original, non-shuffled matrix, resembling FDR controlled co-accessible ACRs. Users can apply the eFDR method to co-accessible ACRs identification on a per cluster/cell type basis by specifying the <code>byGroup</code> and <code>groupID</code> arguments, as described above. An example of co-accessible ACR calling with eFDR filtering is illustrated below.</p>
 <pre class="r"><code># find co-accessible ACRs with eFDR
-obj &lt;- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05)</code></pre>
+obj &lt;- coAccess(obj, genome=genome, eFDR=TRUE, fdr_thresh=0.05, verbose=T)</code></pre>
 <pre><code>## Overlap QC metrics:
 ## Cells per bin: 30
 ## Maximum shared cells bin-bin: 26
-## Mean shared cells bin-bin: 0.203150904159999
+## Mean shared cells bin-bin: 0.203676494858
 ## Median shared cells bin-bin: 0</code></pre>
+<pre><code>##  - found 3980294 potential co-accessible ACRs in observed data ...</code></pre>
 <pre><code>## Overlap QC metrics:
 ## Cells per bin: 30
 ## Maximum shared cells bin-bin: 26
-## Mean shared cells bin-bin: 0.203596949293853
+## Mean shared cells bin-bin: 0.204192591525871
 ## Median shared cells bin-bin: 0</code></pre>
+<pre><code>##  - found 3980294 potential co-accessible ACRs in expected data ...</code></pre>
+<pre><code>##  - number expected links = (+) 955308 | (-) 956158</code></pre>
+<pre><code>##  - number observed links = (+) 975710 | (-) 718568</code></pre>
+<pre><code>##  - scanning positive thresholds ...</code></pre>
+<pre><code>##  - (+) correlation threshold = 0 | FDR = 1</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0101010101010101 | FDR = 0.154268570973969</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0202020202020202 | FDR = 0.112876684796945</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0303030303030303 | FDR = 0.0859283079383822</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0404040404040404 | FDR = 0.0645132250541187</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0505050505050505 | FDR = 0.0475616241044773</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0606060606060606 | FDR = 0.0344244997424914</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0707070707070707 | FDR = 0.024662203184732</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0808080808080808 | FDR = 0.0172467937042294</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.0909090909090909 | FDR = 0.0118558621931356</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.101010101010101 | FDR = 0.00799951429277259</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.111111111111111 | FDR = 0.00519622990700381</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.121212121212121 | FDR = 0.00334133075406047</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.131313131313131 | FDR = 0.00214590477626064</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.141414141414141 | FDR = 0.00126660720940262</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.151515151515152 | FDR = 0.000755777194370821</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.161616161616162 | FDR = 0.000429180955252128</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.171717171717172 | FDR = 0.000226105088620633</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.181818181818182 | FDR = 0.000138175331934831</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.191919191919192 | FDR = 8.58361910504256e-05</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.202020202020202 | FDR = 5.23391408844059e-05</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.212121212121212 | FDR = 3.34970501660198e-05</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.222222222222222 | FDR = 1.67485250830099e-05</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.232323232323232 | FDR = 1.04678281768812e-05</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.242424242424242 | FDR = 8.37426254150494e-06</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.252525252525253 | FDR = 4.18713127075247e-06</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.262626262626263 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.272727272727273 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.282828282828283 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.292929292929293 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.303030303030303 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.313131313131313 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.323232323232323 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.333333333333333 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.343434343434343 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.353535353535354 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.363636363636364 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.373737373737374 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.383838383838384 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.393939393939394 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.404040404040404 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.414141414141414 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.424242424242424 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.434343434343434 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.444444444444444 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.454545454545455 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.464646464646465 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.474747474747475 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.484848484848485 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.494949494949495 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.505050505050505 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.515151515151515 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.525252525252525 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.535353535353535 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.545454545454546 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.555555555555556 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.565656565656566 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.575757575757576 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.585858585858586 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.595959595959596 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.606060606060606 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.616161616161616 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.626262626262626 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.636363636363636 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.646464646464647 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.656565656565657 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.666666666666667 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.676767676767677 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.686868686868687 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.696969696969697 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.707070707070707 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.717171717171717 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.727272727272727 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.737373737373737 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.747474747474748 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.757575757575758 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.767676767676768 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.777777777777778 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.787878787878788 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.797979797979798 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.808080808080808 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.818181818181818 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.828282828282828 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.838383838383838 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.848484848484849 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.858585858585859 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.868686868686869 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.878787878787879 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.888888888888889 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.898989898989899 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.909090909090909 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.919191919191919 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.929292929292929 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.939393939393939 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.94949494949495 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.95959595959596 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.96969696969697 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.97979797979798 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 0.98989898989899 | FDR = 0</code></pre>
+<pre><code>##  - (+) correlation threshold = 1 | FDR = 0</code></pre>
+<pre><code>##  - scanning negative thresholds ...</code></pre>
+<pre><code>##  - (-) correlation threshold = 0 | FDR = 1</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0101010101010101 | FDR = 0.151820096678582</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0202020202020202 | FDR = 0.110199360356761</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0303030303030303 | FDR = 0.0830051100341157</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0404040404040404 | FDR = 0.0620650561936416</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0505050505050505 | FDR = 0.0455447739808693</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0606060606060606 | FDR = 0.032567839206491</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0707070707070707 | FDR = 0.0230171164179979</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0808080808080808 | FDR = 0.015865578701428</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.0909090909090909 | FDR = 0.0106300423151822</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.101010101010101 | FDR = 0.00704904419562457</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.111111111111111 | FDR = 0.00453481537570151</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.121212121212121 | FDR = 0.00287609369999519</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.131313131313131 | FDR = 0.00185325019505145</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.141414141414141 | FDR = 0.00112742873039811</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.151515151515152 | FDR = 0.000675620556435234</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.161616161616162 | FDR = 0.000382781925162996</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.171717171717172 | FDR = 0.000217537268945091</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.181818181818182 | FDR = 0.000135960793090682</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.191919191919192 | FDR = 6.90262487998845e-05</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.202020202020202 | FDR = 3.76506811635734e-05</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.212121212121212 | FDR = 1.88253405817867e-05</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.222222222222222 | FDR = 8.36681803634964e-06</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.232323232323232 | FDR = 4.18340901817482e-06</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.242424242424242 | FDR = 2.09170450908741e-06</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.252525252525253 | FDR = 2.09170450908741e-06</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.262626262626263 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.272727272727273 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.282828282828283 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.292929292929293 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.303030303030303 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.313131313131313 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.323232323232323 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.333333333333333 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.343434343434343 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.353535353535354 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.363636363636364 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.373737373737374 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.383838383838384 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.393939393939394 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.404040404040404 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.414141414141414 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.424242424242424 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.434343434343434 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.444444444444444 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.454545454545455 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.464646464646465 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.474747474747475 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.484848484848485 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.494949494949495 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.505050505050505 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.515151515151515 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.525252525252525 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.535353535353535 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.545454545454546 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.555555555555556 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.565656565656566 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.575757575757576 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.585858585858586 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.595959595959596 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.606060606060606 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.616161616161616 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.626262626262626 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.636363636363636 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.646464646464647 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.656565656565657 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.666666666666667 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.676767676767677 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.686868686868687 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.696969696969697 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.707070707070707 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.717171717171717 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.727272727272727 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.737373737373737 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.747474747474748 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.757575757575758 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.767676767676768 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.777777777777778 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.787878787878788 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.797979797979798 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.808080808080808 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.818181818181818 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.828282828282828 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.838383838383838 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.848484848484849 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.858585858585859 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.868686868686869 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.878787878787879 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.888888888888889 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.898989898989899 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.909090909090909 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.919191919191919 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.929292929292929 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.939393939393939 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.94949494949495 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.95959595959596 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.96969696969697 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.97979797979798 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -0.98989898989899 | FDR = 0</code></pre>
+<pre><code>##  - (-) correlation threshold = -1 | FDR = 0</code></pre>
+<pre><code>##  - found 557516 + and 379484 - ACR-ACR links ...</code></pre>
 <pre class="r"><code># co-accessible ACRs are stored in the 'obj$coACR' slot. 
 head(obj$coACRs)</code></pre>
-<pre><code>## [1] Peak1    Peak2    coaccess
-## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<pre><code>##                            i                         j           x
+## 4  chr10_100019515_100020156   chr10_99893896_99895390 -0.18370563
+## 11 chr10_100019515_100020156 chr10_100055103_100055702  0.07856416
+## 13 chr10_100019515_100020156 chr10_100074247_100074797  0.24209781
+## 14 chr10_100019515_100020156 chr10_100075969_100076870  0.20875253
+## 15 chr10_100019515_100020156 chr10_100082828_100083560  0.47745105
+## 17 chr10_100019515_100020156 chr10_100099384_100100351 -0.10952863</code></pre>
 </div>
 
 

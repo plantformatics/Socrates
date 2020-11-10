@@ -288,6 +288,9 @@ getFDR <- function(obs,
         }
         p.thresh <- c(p.thresh, c.fdr)
         if(verbose){message(" - (+) correlation threshold = ", i, " | FDR = ", c.fdr)}
+        if(c.fdr < fdr){
+            break
+        }
     }
     if(verbose){message(" - scanning negative thresholds ...")}
     n.thresh <- c()
@@ -299,6 +302,9 @@ getFDR <- function(obs,
         }
         n.thresh <- c(n.thresh, c.fdr)
         if(verbose){message(" - (-) correlation threshold = ", i, " | FDR = ", c.fdr)}
+        if(c.fdr < fdr){
+            break
+        }
     }
 
     # select cut-offs
