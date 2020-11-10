@@ -51,3 +51,4 @@ devtools::install_github("plantformatics/Socrates")
 
 [2. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_clustering_comparison_tutorial.html)
 
+[3. Identify co-accessible ACRs](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_coACRs_tutorial.html)
