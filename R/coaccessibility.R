@@ -230,7 +230,7 @@ runCicero <- function(cds,
     cicero_cds <- make_cicero_cds(cds, reduced_coordinates=umap_coords, k=k)
 
     # run cicero (connections)
-    conns <- run_cicero(cicero_cds, genome, window=500000, sample_num=100, silent=silent)
+    conns <- run_cicero(cicero_cds, genome, window=win, sample_num=sample_num, silent=silent)
 
     # return
     return(conns)
