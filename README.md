@@ -41,7 +41,7 @@ install.packages("devtools")
 library(devtools)
 
 # install
-devtools::install_github("plantformatics/Socrates")
+devtools::install_github("plantformatics/Socrates", ref="main")
 ```
 
 ---
