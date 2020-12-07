@@ -43,16 +43,16 @@ loadSparseData <- function(input=NULL,
         # verbose
         if(verbose){message(" - loading gzipped sparse matrix ... ")}
         a <- read.table(gzfile(input))
-        a$V1 <- as.factor(a$V1)
-        a$V2 <- as.factor(a$V2)
+        a$V1 <- factor(a$V1)
+        a$V2 <- factor(a$V2)
 
     }else{
 
         # verbose
         if(verbose){message(" - loading sparse matrix ... ")}
         a <- read.table(input)
-        a$V1 <- as.factor(a$V1)
-        a$V2 <- as.factor(a$V2)
+        a$V1 <- factor(a$V1)
+        a$V2 <- factor(a$V2)
 
     }
 
