@@ -4,7 +4,7 @@
 
 `Socrates` is an R package for analyzing Single-Cell Assay for Transposase Accessible Chromatin Sequencing (scATAC-seq) data. `Socrates` takes as input **1.** barcode meta data and **2.** a cell x feature sparse matrix in triplet format (see example data in inst/extdata). The main contribution of `Socrates` compared to previously established methods is a regularized quasi-binomial logistic regression for single-cell chromatin accessibility for normalizing accessibility profiles across peaks and cells. 
 
-`Socrates` provides tools for several processing and analytical steps: 
+Coming updates to `Socrates` will provides tool for several processing and analytical steps: 
 
 1. Clustering
 2. Batch effect removal 
@@ -52,3 +52,5 @@ devtools::install_github("plantformatics/Socrates", ref="main")
 [2. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_clustering_comparison_tutorial.html)
 
 [3. Identify co-accessible ACRs](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_coACRs_tutorial.html)
+
+...  more coming soon
