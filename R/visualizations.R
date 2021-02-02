@@ -13,6 +13,7 @@
 #' @param column character, column header specifying how to color cells. Factors are plotted
 #' catagorically, while continuous numeric values are plotted along a spectrum.
 #' @param cex float, set the point size. Defaults to 0.3.
+#' @param opaque float, set the transparency of point colors. Defaults to 1. 
 #' @param cluster_slotName character, string specifying the desired UMAP slot to use for plotting.
 #' Deafults to "UMAP".
 #' @param xlab character string for x-axis name.
