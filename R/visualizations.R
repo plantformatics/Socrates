@@ -7,6 +7,7 @@
 #'
 #' @import RColorBrewer
 #' @import viridis
+#' @import scales
 #'
 #' @param obj list, object containing meta data.
 #' @param column character, column header specifying how to color cells. Factors are plotted
@@ -24,6 +25,7 @@
 plotUMAP <- function(obj,
                      column="LouvainClusters",
                      cex=0.3,
+		     opaque=1,
                      cluster_slotName="Clusters",
                      xlab="umap1",
                      ylab="umap2",
@@ -58,7 +60,7 @@ plotUMAP <- function(obj,
     }
 
     # plot
-    plot(b$umap1, b$umap2, pch=16, cex=cex, col=colv,
+    plot(b$umap1, b$umap2, pch=16, cex=cex, col=alpha(colv,opaque),
          xlab=xlab,
          ylab=ylab,
          main=main,

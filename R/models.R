@@ -383,6 +383,7 @@ regModel <- function(obj,
     pars <- lapply(seq(1:nrow(x.sub)), function(j){
         df <- cbind(y, x.sub[j,])
         colnames(df) <- c(colnames(y), "z")
+	df$z <- as.factor(df$z)
         suppressWarnings(mod <- glm(form,
                                     data=df,
                                     family=quasibinomial(link = link)))
