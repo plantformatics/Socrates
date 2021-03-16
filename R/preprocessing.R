@@ -100,6 +100,67 @@ loadSparseData <- function(input=NULL,
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
+#' convertSparseData
+#'
+#' This function loads the sparse matrix and meta data and returns a list - counts & meta
+#'
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Matrix colSums
+#'
+#' @param obj Object output by generateMatrix.
+#' @param verbose logical. Defaults to FALSE.
+#'
+#' @rdname convertSparseData
+#' @export
+#'
+convertSparseData <- function(obj,
+                              verbose=F){
+
+    # specify data sets
+    a <- obj$counts
+
+    # make sure bins/cells are factors
+    if(verbose){message(" - converting triplet format to sparseMatrix")}
+    a$V1 <- factor(a$V1)
+    a$V2 <- factor(a$V2)
+
+    # convert to sparseMatrix format
+    a <- Matrix::sparseMatrix(i=as.numeric(a$V1),
+                              j=as.numeric(a$V2),
+                              x=as.numeric(a$V3),
+                              dimnames=list(levels(a$V1),levels(a$V2)))
+
+    # order barcodes
+    if(!is.null(obj$meta.v3)){
+        meta.use <- obj$meta.v3
+    }else{
+        if(!is.null(obj$meta.v2)){
+            meta.use <- obj$meta.v2
+        }else{
+            if(!is.null(obj$meta.v1)){
+                meta.use <- obj$meta.v1
+            }
+        }
+    }
+    b <- meta.use
+
+    # align barcodes
+    both <- intersect(rownames(b), colnames(a))
+    a <- a[,both]
+    b <- b[both,]
+
+    # make sure nSites is calculated
+    b$nSites   <- Matrix::colSums(a)
+    b$log10nSites <- log10(b$nSites)
+
+    # return
+    return(list(counts=a,meta=b))
+}
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
 #' Filter sparse matrix
 #'
 #' This function filters the cell x peak matrix based on pre-clustering results, a minimum peak

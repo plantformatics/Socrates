@@ -1,0 +1,101 @@
+---
+title: "Load_and_QC_data"
+author: "Alexandre P. Marand"
+date: "3/15/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading data
+
+After aligning scATAC-seq reads to a reference genome, its important to evaluate data quality. `Socrates` allows facile loading and analysis of scATAC-seq data, requiring only a BED file with the Tn5 integration sites (analagous to the ends of the fragments.tsv file from 10X) with 5 columns (chr start end barcode strand), a GFF file with gene coordinates, and a chromosome sizes file with one chromosome per line (chr chr_length). The output is `obj` with several slots (1) `obj$bed` which contains the single-bp Tn5 integration sites for each barcode; (2) `obj$gff` genome GFF annotation as TxDb object; (3) `obj$chr` a data.frame with the chromosome sizes of the genome.
+
+```{r load, message=TRUE}
+
+# load Socrates
+library(Socrates)
+
+# file paths
+bed <- system.file("extdata", "test.tn5.bed.gz", package = "Socrates")
+ann <- system.file("extdata", "gencode.v19.annotation.gff3.gz", package = "Socrates")
+chr <- system.file("extdata", "hg19.txt", package = "Socrates")
+
+# load data
+obj <- loadBEDandGenomeData(bed, ann, chr)
+
+```
+
+## Identify ACRs
+
+A particularly useful metric of data quality can be estimated by counting the proportion of Tn5 integration sites that are localized to significantly enriched regions of the genome. To estimate the fraction of reads in peaks (FRiP), `Socrates` can run MACS2 on the bulk Tn5 integration sites and count the number of integration sites per barcode. Code for identifying ACRs is shown below:
+
+```{r acrs, message=TRUE}
+
+# call ACRs
+obj <- callACRs(obj, genomesize=1.6e9, 
+                shift= -50, 
+                extsize=100,
+                fdr=0.05,
+                output="bulk_peaks", 
+                tempdir="./macs2_temp", 
+                verbose=T)
+
+```
+
+Here, we specify the total mappable sequences for the target genome (for maize, this value is ~1.6e9), shift the 1bp Tn5 integration sites -50 bp, and extend the pseudoframent 100bp. This results in a pseudofragment centered on the Tn5 integration site 100 bp in length that is used for identifying genomic regions with significant enrichment at an FDR at 0.05.
+
+
+## Building the meta data files
+
+Once we have identified ACRs, we can now start to build the metadata file. Here we use a 2-kb window surrounding TSS for estimating the proportion of Tn5 integration sites near genes. 
+
+```{r building_metadata, message=TRUE}
+
+# build metadata
+obj <- buildMetaData(obj, tss.window=2000, verbose=TRUE)
+
+# view object
+head(obj$meta)
+
+```
+
+
+## Filtering low-quality cells
+
+The metadata slot contains valuable information for removing low-quality barcodes. Filtering cells based on total read depth (at least 2000 Tn5 integration sites), maximum number of cells (16000), proportion of reads mapping to TSSs (defaults to 0.2 and z-score of 3), and barcode FRiP scores (defaults to 0.2 and z-score of 3) is shown below.
+
+```{r filtering_cells, message=TRUE}
+
+# filter cells
+obj <- filterCells(obj, 
+                   max.cells=16000,
+                   min.tn5=2000,
+                   filt.tss=TRUE, 
+                   filt.frip=TRUE)
+
+```
+
+## Generating a sparse matrix 
+
+Finally, we can now build a sparse matrix using on the highest quality cells using either ACRs or the genome split into non-overlapping window. The `filtered` parameter species whether to use the filtered set of cells (TRUE) or the unfiltered cells (FALSE). The `windows` parameter denotes the tile size when using the entire genome to build the sparse matrix. If `peaks` is set to `TRUE`, ACRs are used to build the sparse matrix (which overrides the genomic windows function). Since the sparse matrix is built per cell, we can get some speed-up by specify more threads.
+
+```{r building matrix, message=TRUE}
+
+# generate sparse matrix
+obj <- generateMatrix(obj, filtered=T, windows=1000, peaks=F, verbose=T, threads=4)
+
+```
+
+Finally, we can convert this object into one that can be used by Socrates for processing, clustering, and other downstream analysis
+
+```{r convert 2 sparse, message=TRUE}
+
+# convert to Socrates format for downstream analysis. 
+soc.obj <- convertSparseData(obj, verbose=T)
+
+# save QC object
+saveRDS(obj, file="QC_object.rds")
+
+```
