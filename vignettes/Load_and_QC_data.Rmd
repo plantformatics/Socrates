@@ -1,5 +1,5 @@
 ---
-title: "Load_and_QC_data"
+title: "Loading and Quality Control of scATAC-seq Data"
 author: "Alexandre P. Marand"
 date: "3/15/2021"
 output: html_document
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Loading data
 
-After aligning scATAC-seq reads to a reference genome, its important to evaluate data quality. `Socrates` allows facile loading and analysis of scATAC-seq data, requiring only a BED file with the Tn5 integration sites (analagous to the ends of the fragments.tsv file from 10X) with 5 columns (chr start end barcode strand), a GFF file with gene coordinates, and a chromosome sizes file with one chromosome per line (chr chr_length). The output is `obj` with several slots (1) `obj$bed` which contains the single-bp Tn5 integration sites for each barcode; (2) `obj$gff` genome GFF annotation as TxDb object; (3) `obj$chr` a data.frame with the chromosome sizes of the genome. If MACS2 is not in your path, you will receive an error and will be booted from the session. Make sure MACS2 is available!!
+After aligning scATAC-seq reads to a reference genome, its important to evaluate data quality. `Socrates` allows facile loading and analysis of scATAC-seq data, requiring only a BED file with the Tn5 integration sites (analagous to the ends of the fragments.tsv file from 10X) with 5 columns (chr start end barcode strand), a GFF file with gene coordinates, and a chromosome sizes file with one chromosome per line (chr chr_length). The output is `obj` with several slots (1) `obj$bed` which contains the single-bp Tn5 integration sites for each barcode; (2) `obj$gff` genome GFF annotation as TxDb object; (3) `obj$chr` a data.frame with the chromosome sizes of the genome. If MACS2 is not in your path, you will receive an error and will be booted from the session. Make sure MACS2 is available!! We will use some freely available data from 10X Genomics that is provided with this package. The Tn5 integration site bed file has been subset to 2 million Tn5 sites for quick processing and to circumvent limitations on file size uploads on GitHub.
 
 ```{r load, message=TRUE}
 
@@ -64,9 +64,9 @@ head(obj$meta)
 
 ## Filtering low-quality cells
 
-The metadata slot contains valuable information for removing low-quality barcodes. Filtering cells based on total read depth (at least 2000 Tn5 integration sites), maximum number of cells (16000), proportion of reads mapping to TSSs (defaults to 0.2 and z-score of 3), and barcode FRiP scores (defaults to 0.2 and z-score of 3) is shown below. You can save the images to a PDF by setting the `prefix` argument. 
+The metadata slot contains valuable information for removing low-quality barcodes. Filtering cells based on total read depth (at least 1000 Tn5 integration sites), maximum number of cells (16000), proportion of reads mapping to TSSs (defaults to 0.2 and z-score of 3), and barcode FRiP scores (defaults to 0.1 and z-score of 2) is shown below. You can save the images to a PDF by setting the `prefix` argument to a non-NULL character string. 
 
-```{r filtering_cells, message=TRUE}
+```{r filtering_cells, message=TRUE, fig.height=4, fig.width=12}
 
 # filter cells
 obj <- findCells(obj, 
@@ -78,9 +78,9 @@ obj <- findCells(obj,
 
 ```
 
-## Generating a sparse matrix 
+## Generating a `Socrates` object for downstream analysis
 
-Finally, we can now build a sparse matrix using on the highest quality cells using either ACRs or the genome split into non-overlapping window. The `filtered` parameter species whether to use the filtered set of cells (TRUE) or the unfiltered cells (FALSE). The `windows` parameter denotes the tile size when using the entire genome to build the sparse matrix. If `peaks` is set to `TRUE`, ACRs are used to build the sparse matrix (which overrides the genomic windows function). 
+Finally, we can now build a sparse matrix using on the highest quality cells using either ACRs or the genome split into non-overlapping window. The `filtered` parameter species whether to use the filtered set of cells (`TRUE`) or the unfiltered cells (`FALSE`). The `windows` parameter denotes the tile size when using the entire genome to build the sparse matrix. If `peaks` is set to `TRUE`, ACRs are used to build the sparse matrix (which overrides the genomic windows function). Here will build the binary sparse matrix using 1-kb windows tiled over the whole genome. 
 
 ```{r building matrix, message=TRUE}
 
@@ -89,7 +89,7 @@ obj <- generateMatrix(obj, filtered=T, windows=1000, peaks=F, verbose=T)
 
 ```
 
-Finally, we can convert this object into one that can be used by Socrates for processing, clustering, and other downstream analysis
+Finally, we can convert this object into one that can be used by `Socrates` for processing, clustering, and other downstream analysis (see [here](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_simple_clustering_tutorial.html) for more details). 
 
 ```{r convert 2 sparse, message=TRUE}
 
@@ -99,4 +99,11 @@ soc.obj <- convertSparseData(obj, verbose=T)
 # save QC object
 saveRDS(obj, file="QC_object.rds")
 
+```
+
+
+### Session Information
+
+```{r sessionInfo}
+sessionInfo()
 ```

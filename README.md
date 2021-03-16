@@ -29,7 +29,7 @@ If you use `Socates` in your own study, please consider citing the following art
 
 ---
 
-Current release: 10/27/20 BETA v0.0.9
+Current release: 03/16/21 BETA v0.0.9
 
 ## Installation
 
@@ -47,10 +47,12 @@ devtools::install_github("plantformatics/Socrates", ref="main")
 ---
 
 ## Tutorials
-[1. Pre-processing, dimensionality reduction, and clustering](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_simple_clustering_tutorial.html)
+[1. Loading data, quality control, identifying cells, and creating a Socrates object](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Load_and_QC_data.html)
 
-[2. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_clustering_comparison_tutorial_html.html)
+[2. Loading pre-processed data, dimensionality reduction, and clustering](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_simple_clustering_tutorial.html)
 
-[3. Identify co-accessible ACRs](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_coACRs_tutorial.html)
+[3. Comparison of normalization methods](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_clustering_comparison_tutorial_html.html)
+
+[4. Identify co-accessible ACRs](https://htmlpreview.github.io/?https://github.com/plantformatics/Socrates/blob/main/vignettes/Socrates_coACRs_tutorial.html)
 
 ...  more coming soon
