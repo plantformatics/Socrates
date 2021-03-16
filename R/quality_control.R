@@ -151,7 +151,7 @@ callACRs <- function(obj, genomesize=1.6e9, shift= -50, extsize=100,
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom GenomicRanges promoters
-#' @importFrom GenomicRanges subsetByOverlaps
+#' @importFrom IRanges subsetByOverlaps
 #'
 #' @param obj Object output from loadBEDandGenomeData. Required.
 #' @param tss.window Size of windows flanking TSS for estimating proportion of Tn5 integration sites
@@ -441,7 +441,7 @@ findCells <- function(obj,
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom GenomicRanges tileGenome
-#' @importFrom GenomicRanges subsetByOverlaps
+#' @importFrom IRanges subsetByOverlaps
 #'
 #' @param obj Object output from findCells or buildMetaData. Required.
 #' @param filtered Logical. Whether or not to use the filtered set of cells. Defaults to TRUE.
