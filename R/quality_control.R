@@ -52,8 +52,7 @@ loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
         # check for macs2
         prg <- "macs2"
         if(Sys.which(prg) == ""){
-            message("Please install ", prg)
-            quit(save="no")
+            stop(message("Please install ", prg, ". ACR calling will not work without MACS2 in your path."))
         }else{
             if(verbose){message("Macs2 is installed .... ok")}
         }
