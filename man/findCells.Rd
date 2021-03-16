@@ -15,7 +15,7 @@ findCells(
   frip.min.freq = 0.1,
   frip.z.thresh = 2,
   doplot = F,
-  prefix = "OUTPUT"
+  prefix = NULL
 )
 }
 \arguments{
@@ -44,7 +44,8 @@ deviations from the mean. Defaults to 3.}
 
 \item{doplot}{Logical. Whether or not to plot the density scatter plots for tss/frip values.}
 
-\item{prefix}{Character. Prefix output name for plots.}
+\item{prefix}{Character. Prefix output name for plots. If changed from the default (NULL), this will
+save the images to disk as a PDF.}
 }
 \description{
 This function filters cells based on read-depth using a mixture of user thresholds and a spline-

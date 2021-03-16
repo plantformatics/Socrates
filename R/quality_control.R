@@ -247,7 +247,8 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @param frip.z.thresh Numeric. Z-score threshold to remove barcodes with values below X standard
 #' deviations from the mean. Defaults to 3.
 #' @param doplot Logical. Whether or not to plot the density scatter plots for tss/frip values.
-#' @param prefix Character. Prefix output name for plots.
+#' @param prefix Character. Prefix output name for plots. If changed from the default (NULL), this will
+#' save the images to disk as a PDF.
 #'
 #' @rdname findCells
 #' @export
@@ -262,7 +263,7 @@ findCells <- function(obj,
                       frip.min.freq=0.1,
                       frip.z.thresh=2,
                       doplot=F,
-                      prefix="OUTPUT"){
+                      prefix=NULL){
 
     # filter functions
     .filterTSS <- function(obj, min.freq=0.2, z.thresh=3, doplot=F, main=""){
@@ -391,7 +392,7 @@ findCells <- function(obj,
 
     # plot
     if(doplot){
-        pdf(paste0(prefix,".QC_FIGURES.pdf"), width=12, height=4)
+        if(!is.null(prefix)){pdf(paste0(prefix,".QC_FIGURES.pdf"), width=12, height=4)}
         layout(matrix(c(1:3), nrow=1))
         plot(rank[(cells+1):length(rank)], depth[(cells+1):length(rank)],
              type="l", lwd=2, col="grey75", main=prefix,
@@ -425,7 +426,7 @@ findCells <- function(obj,
         obj$meta.v3 <- obj$meta.v2
     }
     if(doplot){
-        dev.off()
+        if(!is.null(prefix)){dev.off()}
     }
     # return
     return(obj)
