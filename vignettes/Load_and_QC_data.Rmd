@@ -64,7 +64,7 @@ head(obj$meta)
 
 ## Filtering low-quality cells
 
-The metadata slot contains valuable information for removing low-quality barcodes. Filtering cells based on total read depth (at least 2000 Tn5 integration sites), maximum number of cells (16000), proportion of reads mapping to TSSs (defaults to 0.2 and z-score of 3), and barcode FRiP scores (defaults to 0.2 and z-score of 3) is shown below.
+The metadata slot contains valuable information for removing low-quality barcodes. Filtering cells based on total read depth (at least 2000 Tn5 integration sites), maximum number of cells (16000), proportion of reads mapping to TSSs (defaults to 0.2 and z-score of 3), and barcode FRiP scores (defaults to 0.2 and z-score of 3) is shown below. You can save the images to a PDF by setting the `prefix` argument. 
 
 ```{r filtering_cells, message=TRUE}
 
