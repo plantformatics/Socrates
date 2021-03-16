@@ -70,6 +70,7 @@ The metadata slot contains valuable information for removing low-quality barcode
 
 # filter cells
 obj <- filterCells(obj, 
+                   doplot=T,
                    max.cells=16000,
                    min.tn5=2000,
                    filt.tss=TRUE, 
@@ -79,12 +80,12 @@ obj <- filterCells(obj,
 
 ## Generating a sparse matrix 
 
-Finally, we can now build a sparse matrix using on the highest quality cells using either ACRs or the genome split into non-overlapping window. The `filtered` parameter species whether to use the filtered set of cells (TRUE) or the unfiltered cells (FALSE). The `windows` parameter denotes the tile size when using the entire genome to build the sparse matrix. If `peaks` is set to `TRUE`, ACRs are used to build the sparse matrix (which overrides the genomic windows function). Since the sparse matrix is built per cell, we can get some speed-up by specify more threads.
+Finally, we can now build a sparse matrix using on the highest quality cells using either ACRs or the genome split into non-overlapping window. The `filtered` parameter species whether to use the filtered set of cells (TRUE) or the unfiltered cells (FALSE). The `windows` parameter denotes the tile size when using the entire genome to build the sparse matrix. If `peaks` is set to `TRUE`, ACRs are used to build the sparse matrix (which overrides the genomic windows function). 
 
 ```{r building matrix, message=TRUE}
 
 # generate sparse matrix
-obj <- generateMatrix(obj, filtered=T, windows=1000, peaks=F, verbose=T, threads=4)
+obj <- generateMatrix(obj, filtered=T, windows=1000, peaks=F, verbose=T)
 
 ```
 
