@@ -268,7 +268,7 @@ findCells <- function(obj,
     .filterTSS <- function(obj, min.freq=0.2, z.thresh=3, doplot=F, main=""){
 
         # get meta
-        x <- obj$meta.v1
+        x <- subset(obj$meta.v1, obj$meta.v1$total > 0)
 
         # get tss props
         x$prop <- x$tss/x$total
