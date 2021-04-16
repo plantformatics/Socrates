@@ -272,7 +272,8 @@ findCells <- function(obj,
 
         # get tss props
         x$prop <- x$tss/x$total
-        x$zscore <- as.numeric(scale(x$prop))
+        x$prop[is.na(x$prop)] <- 0
+        x$zscore <- as.numeric((x$prop-mean(x$prop, na.rm=T))/sd(x$prop, na.rm=T))
         x$zscore[is.na(x$zscore)] <- 0
         x$zscore[is.infinite(x$zscore) & x$zscore < 0] <- min(x$zscore[is.finite(x$zscore)])
         x$zscore[is.infinite(x$zscore) & x$zscore > 0] <- max(x$zscore[is.finite(x$zscore)])
@@ -321,7 +322,8 @@ findCells <- function(obj,
 
         # get FRiP props
         x$prop <- x$acr/x$total
-        x$zscore <- as.numeric(scale(x$prop))
+        x$prop[is.na(x$prop)] <- 0
+        x$zscore <- as.numeric((x$prop-mean(x$prop, na.rm=T))/sd(x$prop, na.rm=T))
         x$zscore[is.na(x$zscore)] <- 0
         x$zscore[is.infinite(x$zscore) & x$zscore < 0] <- min(x$zscore[is.finite(x$zscore)])
         x$zscore[is.infinite(x$zscore) & x$zscore > 0] <- max(x$zscore[is.finite(x$zscore)])
