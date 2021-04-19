@@ -318,7 +318,7 @@ findCells <- function(obj,
     .filterFRiP <- function(obj, min.freq=0.1, z.thresh=2, doplot=F, main=""){
 
         # get meta
-        x <- obj$meta.v2
+        x <- subset(obj$meta.v2, obj$meta.v2$total > 0)
 
         # get FRiP props
         x$prop <- x$acr/x$total
@@ -566,4 +566,214 @@ writeReadME <- function(fileID="QC_README"){
 
 
 }
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' mergeQCdataRDS
+#'
+#' This function merges QC data RDS objects. Useful for joining replicates and multiple samples
+#' for downstream analysis. A simple way to aggregate multiple samples into a single socrates
+#' object is to move all the samples of interest into a directory and load the paths with
+#' list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for each of
+#' the objects. The easiest way to ensure mergeable objects is to use the same window size (instead
+#' of ACRs) for the function `generateMatrix`. Use this function for rds objects saved from
+#' QC analysis. The function `mergeSocratesRDS` should be specifically used for objects produced
+#' using `convertSparseData`.
+#'
+#' # specify input files
+#' > input.files <- list.files(pattern="*.rds", path="/path/to/rds/directory")
+#' > input.files
+#' [1] "rep1.rds" "rep2.rds"
+#'
+#' # name the input files
+#' > names(input.files) <- c("rep1", "rep2")
+#' > input.files
+#'       rep1       rep2
+#' "rep1.rds" "rep2.rds"
+#'
+#' # merge reps 1 and 2
+#' > merged.obj <- mergeQCdatRDS(filenames=input.files)
+#'
+#' # check data structure
+#' > str(merged.obj)
+#'
+#' @param filenames Named vector of filepaths.
+#'
+#' @rdname mergeQCdataRDS
+#' @export
+#'
+mergeQCdataRDS <- function(filenames){
+
+    # load RDS objects
+    all.rds <- lapply(filenames, function(x){
+        readRDS(x)
+    })
+    names(all.rds) <- names(filenames)
+
+    # load filtered meta files
+    meta.files <- lapply(names(filenames), function(x){
+        all.rds[[x]]$meta.v3
+    })
+    meta.files <- as.data.frame(do.call(rbind, meta.files))
+
+    # merge ACRs
+    acrs <- lapply(names(filenames), function(x){
+        all.rds[[x]]$acr
+    })
+    names(acrs) <- names(filenames)
+
+    # merge BED
+    beds <- lapply(names(filenames), function(x){
+        all.rds[[x]]$bed
+    })
+    names(beds) <- names(filenames)
+
+    # get gff
+    gff <- all.rds[[1]]$gff
+
+    # get chr
+    chr <- all.rds[[1]]$chr
+
+    # merge counts data
+    cnts <- lapply(names(filenames), function(x){
+        ct <- all.rds[[x]]$counts
+        colnames(ct) <- c("V1", "V2", "V3")
+        ct$V1 <- factor(ct$V1)
+        ct$V2 <- factor(ct$V2)
+        ct$V3 <- as.numeric(ct$V3)
+        ct
+    })
+    cnts <- as.data.frame(do.call(rbind, cnts))
+    cnts$V1 <- factor(cnts$V1)
+    cnts$V2 <- factor(cnts$V2)
+    cnts$V3 <- as.numeric(cnts$V3)
+    cnts <- sparseMatrix(i=as.numeric(cnts$V1),
+                         j=as.numeric(cnts$V2),
+                         x=as.numeric(cnts$V3),
+                         dimnames=list(levels(cnts$V1), levels(cnts$V2)))
+
+    # shared ids only
+    shared.ids <- intersect(rownames(meta.files),
+                            colnames(cnts))
+    cnts <- cnts[,shared.ids]
+    cnts <- cnts[Matrix::rowSums(cnts)>0,]
+    meta.files <- meta.files[shared.ids,]
+
+    # build new object
+    m.obj <- list(meta=meta.files,
+                  counts=cnts,
+                  bed=beds,
+                  gff=gff,
+                  chr=chr,
+                  samples=names(filenames))
+
+    # return
+    return(m.obj)
+
+}
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' mergeSocratesRDS
+#'
+#' This function merges Socrates data RDS objects. Useful for joining replicates and multiple samples
+#' for downstream analysis. A simple way to aggregate multiple samples into a single socrates
+#' object is to move all the samples of interest into a directory and load the paths with
+#' list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for generating
+#' the sparse matrices. The easiest way to ensure mergeable objects is to use the same window size
+#' (instead of ACRs) for the function `generateMatrix` from each sample.
+#'
+#' # specify input files
+#' > input.files <- list.files(pattern="*.rds", path="/path/to/rds/directory")
+#' > input.files
+#' [1] "rep1.rds" "rep2.rds"
+#'
+#' # name the input files
+#' > names(input.files) <- c("rep1", "rep2")
+#' > input.files
+#'       rep1       rep2
+#' "rep1.rds" "rep2.rds"
+#'
+#' # merge reps 1 and 2
+#' > merged.obj <- mergeSocratesRDS(filenames=input.files)
+#'
+#' # check data structure
+#' > str(merged.obj)
+#'
+#' # one can also load using a list of socrates objects.
+#' > all.soc.obj <- list(rep1=soc.obj1, rep22=soc.obj2)
+#' > merged.obj <- mergeSocratesRDS(obj.list=all.soc.obj)
+#'
+#' @param filenames Named vector of filepaths.
+#' @param obj.list Named list of Socrates objects output from `convertSparseData`.
+#'
+#' @rdname mergeSocratesRDS
+#' @export
+#'
+mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
+
+    # checks
+    if(is.null(filenames)){
+        if(is.null(obj.list)){
+            stop("arguments 'filenames' or 'obj.list' must not be NULL ...")
+        }
+    }
+
+    # load file RDS
+    if(is.null(filenames)){
+
+        # load RDS objects
+        all.rds <- lapply(filenames, function(x){
+            readRDS(x)
+        })
+        names(all.rds) <- names(filenames)
+    }else{
+        all.rds <- obj.list
+        filenames <- names(all.rds)
+        rm(obj.list)
+    }
+
+    # load filtered meta files
+    meta.files <- lapply(names(filenames), function(x){
+        all.rds[[x]]$meta
+    })
+    meta.files <- as.data.frame(do.call(rbind, meta.files))
+
+    # merge counts data
+    cnts <- lapply(names(filenames), function(x){
+        ct <- as.data.frame(summary(all.rds[[x]]$counts))
+        colnames(ct) <- c("V1", "V2", "V3")
+        ct$V1 <- rownames(all.rds[[x]]$counts)[ct$V1]
+        ct$V2 <- colnames(all.rds[[x]]$counts)[ct$V2]
+        ct$V1 <- factor(ct$V1)
+        ct$V2 <- factor(ct$V2)
+        ct
+    })
+    cnts <- as.data.frame(do.call(rbind, cnts))
+    cnts <- sparseMatrix(i=as.numeric(cnts$V1),
+                         j=as.numeric(cnts$V2),
+                         x=as.numeric(cnts$V3),
+                         dimnames=list(levels(cnts$V1), levels(cnts$V2)))
+
+    # shared ids only
+    shared.ids <- intersect(rownames(meta.files),
+                            colnames(cnts))
+    cnts <- cnts[,shared.ids]
+    cnts <- cnts[Matrix::rowSums(cnts)>0,]
+    meta.files <- meta.files[shared.ids,]
+
+    # build new object
+    m.obj <- list(meta=meta.files,
+                  counts=cnts)
+
+    # return
+    return(m.obj)
+
+}
+
+
 

@@ -101,6 +101,16 @@ saveRDS(obj, file="QC_object.rds")
 
 ```
 
+If you have multiple `soc.obj` objects (say from different replicates or experimental samples), you can merge the results into a single object. Just make sure that the different samples/objects will have a shared genome space - the same 1-kb windows or peaks when building the matrices with `generateMatrix`. Below is an example of merging two replicates which we name as rep1 and rep2. You can also merge socrates objects that have been saved as RDS files - run `mergeSocratesRDS` for more information on arguments. 
+
+```{r merge socrates objects, message=FALSE, warning=FALSE, error=FALSE}
+
+# merge Socrates objects
+object.list <- list(rep1=soc.obj1, rep2=soc.obj2)
+merge.obj <- mergeSocratesRDS(obj.list=object.list)
+
+# check object
+str(merge.obj)
 
 ### Session Information
 

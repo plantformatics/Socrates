@@ -139,6 +139,8 @@ convertSparseData <- function(obj,
         }else{
             if(!is.null(obj$meta.v1)){
                 meta.use <- obj$meta.v1
+            }else{
+                meta.use <- obj$meta
             }
         }
     }
