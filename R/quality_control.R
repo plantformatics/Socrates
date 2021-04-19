@@ -739,10 +739,14 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
     }
 
     # load filtered meta files
+    row.ids <- c()
     meta.files <- lapply(filenames, function(x){
-        all.rds[[x]]$meta
+        dat <- all.rds[[x]]$meta
+        row.ids <<- c(row.ids, rownames(dat))
+        dat
     })
     meta.files <- as.data.frame(do.call(rbind, meta.files))
+    rownames(meta.files) <- row.ids
 
     # merge counts data
     cnts <- lapply(filenames, function(x){
@@ -755,6 +759,9 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
         ct
     })
     cnts <- as.data.frame(do.call(rbind, cnts))
+    cnts$V1 <- as.factor(cnts$V1)
+    cnts$V2 <- as.factor(cnts$V2)
+    cnts$V3 <- as.numeric(cnts$V3)
     cnts <- sparseMatrix(i=as.numeric(cnts$V1),
                          j=as.numeric(cnts$V2),
                          x=as.numeric(cnts$V3),
