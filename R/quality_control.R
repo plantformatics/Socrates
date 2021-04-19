@@ -477,7 +477,7 @@ generateMatrix <- function(obj,
     }
 
     # generate intervals
-    if(is.null(peaks)){
+    if(!peaks){
 
         # build bins from specified tile length
         chr.seq.lengths <- as.numeric(obj$chr$V2)
