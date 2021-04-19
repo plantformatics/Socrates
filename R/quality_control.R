@@ -724,7 +724,7 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
     }
 
     # load file RDS
-    if(is.null(filenames)){
+    if(!is.null(filenames)){
 
         # load RDS objects
         all.rds <- lapply(filenames, function(x){
@@ -734,17 +734,18 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
     }else{
         all.rds <- obj.list
         filenames <- names(all.rds)
+        names(filenames) <- names(all.rds)
         rm(obj.list)
     }
 
     # load filtered meta files
-    meta.files <- lapply(names(filenames), function(x){
+    meta.files <- lapply(filenames, function(x){
         all.rds[[x]]$meta
     })
     meta.files <- as.data.frame(do.call(rbind, meta.files))
 
     # merge counts data
-    cnts <- lapply(names(filenames), function(x){
+    cnts <- lapply(filenames, function(x){
         ct <- as.data.frame(summary(all.rds[[x]]$counts))
         colnames(ct) <- c("V1", "V2", "V3")
         ct$V1 <- rownames(all.rds[[x]]$counts)[ct$V1]
