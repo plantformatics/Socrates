@@ -740,8 +740,11 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
 
     # load filtered meta files
     row.ids <- c()
+    its <- 0
     meta.files <- lapply(filenames, function(x){
+        its <<- its + 1
         dat <- all.rds[[x]]$meta
+        dat$sampleID <- names(filenames)[its]
         row.ids <<- c(row.ids, rownames(dat))
         dat
     })
