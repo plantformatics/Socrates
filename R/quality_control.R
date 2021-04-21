@@ -232,6 +232,8 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @importFrom viridis magma
 #'
 #' @param obj Object output from buildMetaData. Required.
+#' @param set.tn5.cutoff Override spline fitting to set minimum tn5 count per cell.
+#' Defaults to NULL.
 #' @param max.cells Upper limit on the number of identified cell. Defaults to 15000.
 #' @param min.tn5 Lower threshold for the minimum number of Tn5 integration sites for retaining
 #' a barcode. Defaults to 1000.
@@ -253,6 +255,7 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @export
 #'
 findCells <- function(obj,
+                      set.tn5.cutoff=NULL,
                       max.cells=15000,
                       min.tn5=1000,
                       filt.tss=T,
@@ -387,6 +390,13 @@ findCells <- function(obj,
     # ensure reads > min.tn5
     if(reads < min.tn5){
         reads <- min.tn5
+        cells <- nrow(subset(df, df$depth>log10(reads)))
+        knee <- log10(cells)
+    }
+
+    # if override spline fitting
+    if(!is.null(set.tn5.cutoff)){
+        reads <- set.tn5.cutoff
         cells <- nrow(subset(df, df$depth>log10(reads)))
         knee <- log10(cells)
     }

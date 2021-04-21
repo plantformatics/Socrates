@@ -6,6 +6,7 @@
 \usage{
 findCells(
   obj,
+  set.tn5.cutoff = NULL,
   max.cells = 15000,
   min.tn5 = 1000,
   filt.tss = T,
@@ -20,6 +21,9 @@ findCells(
 }
 \arguments{
 \item{obj}{Object output from buildMetaData. Required.}
+
+\item{set.tn5.cutoff}{Override spline fitting to set minimum tn5 count per cell.
+Defaults to NULL.}
 
 \item{max.cells}{Upper limit on the number of identified cell. Defaults to 15000.}
 
