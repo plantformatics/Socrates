@@ -34,6 +34,11 @@ filterSingle  <- function(pro,
         vars <- colnames(pro)
     }
 
+    # ensure that k is less than number of samples
+    if(k > nrow(pro)){
+        k <- nrow(pro)-1
+    }
+
     # get nearest neighbors
     topk <- get.knn(pro[,vars], k=k)
     cell.dists <- as.matrix(topk$nn.dist)
