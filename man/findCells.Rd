@@ -7,6 +7,7 @@
 findCells(
   obj,
   set.tn5.cutoff = NULL,
+  min.cells = 100,
   max.cells = 15000,
   min.tn5 = 1000,
   filt.tss = T,
@@ -25,7 +26,9 @@ findCells(
 \item{set.tn5.cutoff}{Override spline fitting to set minimum tn5 count per cell.
 Defaults to NULL.}
 
-\item{max.cells}{Upper limit on the number of identified cell. Defaults to 15000.}
+\item{min.cells}{Lower limit on the number of identified cells. Defaults to 100.}
+
+\item{max.cells}{Upper limit on the number of identified cells. Defaults to 15000.}
 
 \item{min.tn5}{Lower threshold for the minimum number of Tn5 integration sites for retaining
 a barcode. Defaults to 1000.}

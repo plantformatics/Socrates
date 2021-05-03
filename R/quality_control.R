@@ -234,7 +234,8 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @param obj Object output from buildMetaData. Required.
 #' @param set.tn5.cutoff Override spline fitting to set minimum tn5 count per cell.
 #' Defaults to NULL.
-#' @param max.cells Upper limit on the number of identified cell. Defaults to 15000.
+#' @param min.cells Lower limit on the number of identified cells. Defaults to 100.
+#' @param max.cells Upper limit on the number of identified cells. Defaults to 15000.
 #' @param min.tn5 Lower threshold for the minimum number of Tn5 integration sites for retaining
 #' a barcode. Defaults to 1000.
 #' @param filt.tss Logical. Whether or not to filter barcodes on based on proportion Tn5 sites over-
@@ -256,6 +257,7 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #'
 findCells <- function(obj,
                       set.tn5.cutoff=NULL,
+                      min.cells=100,
                       max.cells=15000,
                       min.tn5=1000,
                       filt.tss=T,
@@ -385,6 +387,9 @@ findCells <- function(obj,
     yvals <- Y$y
     knee <- xvals[which.min(yvals[1:max.cells])]
     cells <- which.min(yvals[1:max.cells])
+    if(cells < min.cells){
+        cells <- min.cells
+    }
     reads <- 10^(depth[cells])
 
     # ensure reads > min.tn5
