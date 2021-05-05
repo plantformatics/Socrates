@@ -387,10 +387,6 @@ findCells <- function(obj,
     yvals <- Y$y
     knee <- xvals[which.min(yvals[1:max.cells])]
     cells <- which.min(yvals[1:max.cells])
-    if(cells < min.cells){
-        cells <- min.cells
-    }
-    reads <- 10^(depth[cells])
 
     # ensure reads > min.tn5
     if(reads < min.tn5){
@@ -405,6 +401,13 @@ findCells <- function(obj,
         cells <- nrow(subset(df, df$depth>log10(reads)))
         knee <- log10(cells)
     }
+
+    # if number of cells less than threshold
+    if(cells < min.cells){
+        cells <- min.cells
+        knee <- log10(cells)
+    }
+    reads <- 10^(depth[cells])
 
     # plot
     if(doplot){

@@ -17,7 +17,7 @@ Coming updates to `Socrates` will provides tool for several processing and analy
 
 and much more!
 
-All users need to begin is a counts matrix (binarized) in triplet format. 
+All users need to begin is a counts matrix (binarized) in triplet format, or a BED file (Columns 1-3: locations of Tn5 insertions, Column 4: barcode, and Column 5 strand). 
 
 ---
 
