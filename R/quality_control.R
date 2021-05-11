@@ -387,7 +387,7 @@ findCells <- function(obj,
     yvals <- Y$y
     knee <- xvals[which.min(yvals[1:max.cells])]
     cells <- which.min(yvals[1:max.cells])
-    reads <- min(df[1:cells,]$total)
+    reads <- (10^(min(df[1:cells,]$depth))) - 1
 
     # ensure reads > min.tn5
     if(reads < min.tn5){
