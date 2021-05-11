@@ -23,9 +23,9 @@ All users need to begin is a counts matrix (binarized) in triplet format, or a B
 
 If you use `Socates` in your own study, please consider citing the following article:
 
-> [**A cis-regulatory atlas in maize at single-cell resolution**](https://www.biorxiv.org/content/10.1101/2020.09.27.315499v3)
+> [**A cis-regulatory atlas in maize at single-cell resolution**](https://doi.org/10.1016/j.cell.2021.04.014)
 > *Alexandre P. Marand, Zongliang Chen, Andrea Gallavotti, Robert J. Schmitz*
-> bioRxiv 2020.09.27.315499; doi: [https://doi.org/10.1101/2020.09.27.315499](https://www.biorxiv.org/content/10.1101/2020.09.27.315499v3)
+> **Cell**,  doi:[10.1016/j.cell.2021.04.014](https://doi.org/10.1016/j.cell.2021.04.014)
 
 ---
 
