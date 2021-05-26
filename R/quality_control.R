@@ -21,7 +21,7 @@
 #' @rdname loadBEDandGenomeData
 #' @export
 #'
-loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
+loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T){
 
     # load hidden pre-check function
     .preRunChecks <- function(bed, ann, sizes, verbose=T){
@@ -75,9 +75,14 @@ loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
     }else{
         a <- read.table(as.character(bed))
     }
+    if(grepl(".gtf", ann)){
+        anntype <- "gtf"
+    }else{
+        anntype <- "gff3"
+    }
 
     # load Gff
-    gff <- suppressWarnings(suppressMessages(makeTxDbFromGFF(as.character(ann), format="gff3", dbxrefTag="Parent")))
+    gff <- suppressWarnings(suppressMessages(makeTxDbFromGFF(as.character(ann), format=anntype, dbxrefTag=attribute)))
     chrom <- read.table(as.character(sizes))
 
     if(verbose){message(" - finished loading data")}
