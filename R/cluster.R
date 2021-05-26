@@ -109,6 +109,7 @@ filtDistClst <- function(b,
 #' Cluster cells using Louvain, Leiden or other graph-based methods implemented by Seurat
 #'
 #' @import Seurat
+#' @import SeuratObject
 #' @import Matrix
 #'
 #' @param obj list, object containing 'PCA', 'UMAP', 'counts' and 'meta'. Required.
@@ -177,7 +178,7 @@ callClusters  <- function(obj,
     if(verbose){message(" - creating seurat object for graph-based clustering ...")}
 
     # create Seurat object, find clusters
-    sro <- CreateSeuratObject(counts.filtered, min.cells=0, min.features=0)
+    sro <- SeuratObject::CreateSeuratObject(counts.filtered, min.cells=0, min.features=0)
     sro[["svd"]] <- CreateDimReducObject(embeddings = pca.filtered, key = "PC_", assay = DefaultAssay(sro))
     sro[["umap"]] <- CreateDimReducObject(embeddings=as.matrix(umap.filtered), key="UMAP_", assay=DefaultAssay(sro))
     sro <- AddMetaData(sro, meta.filtered)
