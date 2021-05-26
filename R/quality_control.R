@@ -42,7 +42,7 @@ loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
         }else{
             if(verbose){message("GFF file path = ", ann, " ... ok")}
         }
-        if(!file.exists(chr)){
+        if(!file.exists(sizes)){
             message("Chromosome sizes file, ", sizes," does not exist... exiting")
             quit(save="no")
         }else{
