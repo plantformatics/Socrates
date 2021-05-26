@@ -33,7 +33,7 @@ Current release: 03/16/21 BETA v0.0.9
 
 ## Installation
 
-`Socates` requires R v3.6.3 or greater. 
+`Socates` requires R v4.0.0 or greater. 
 
 ```
 # download the devtools package if not currently installed
