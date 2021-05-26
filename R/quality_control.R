@@ -24,7 +24,7 @@
 loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
 
     # load hidden pre-check function
-    .preRunChecks <- function(bed, ann, chr, verbose=T){
+    .preRunChecks <- function(bed, ann, sizes, verbose=T){
 
         # verbose
         if(verbose){message("Running pre-check on input files and executable paths ...")}
@@ -43,10 +43,10 @@ loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
             if(verbose){message("GFF file path = ", ann, " ... ok")}
         }
         if(!file.exists(chr)){
-            message("Chromosome sizes file, ", chr," does not exist... exiting")
+            message("Chromosome sizes file, ", sizes," does not exist... exiting")
             quit(save="no")
         }else{
-            if(verbose){message("Chromosome sizes file path = ", chr, " ... ok")}
+            if(verbose){message("Chromosome sizes file path = ", sizes, " ... ok")}
         }
 
         # check for macs2
@@ -61,12 +61,12 @@ loadBEDandGenomeData <- function(bed, ann, sizes, verbose=T){
     }
 
     # run pre-checks
-    .preRunChecks(bed, ann, chr, verbose=verbose)
+    .preRunChecks(bed, ann, sizes, verbose=verbose)
 
     # save paths
     bedpath <- bed
     annpath <- ann
-    chrpath <- chr
+    chrpath <- sizes
 
     # load args
     if(verbose){message(" - loading data (this may take a while for big BED files) ...")}
