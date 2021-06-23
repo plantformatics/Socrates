@@ -7,9 +7,11 @@
 findCells(
   obj,
   set.tn5.cutoff = NULL,
-  min.cells = 100,
+  min.cells = 1000,
   max.cells = 15000,
   min.tn5 = 1000,
+  filt.org = F,
+  org.filter.thresh = 0.8,
   filt.tss = T,
   tss.min.freq = 0.2,
   tss.z.thresh = 3,
@@ -26,12 +28,17 @@ findCells(
 \item{set.tn5.cutoff}{Override spline fitting to set minimum tn5 count per cell.
 Defaults to NULL.}
 
-\item{min.cells}{Lower limit on the number of identified cells. Defaults to 100.}
+\item{min.cells}{Lower limit on the number of identified cells. Defaults to 1000.}
 
 \item{max.cells}{Upper limit on the number of identified cells. Defaults to 15000.}
 
 \item{min.tn5}{Lower threshold for the minimum number of Tn5 integration sites for retaining
 a barcode. Defaults to 1000.}
+
+\item{filt.org}{Logical. Whether or not to filter barcodes on based on proportion Tn5 sites occuring
+in an organelle. Defaults to FALSE. Expects organelles built off meta}
+
+\item{org.filter.thresh}{Remove cells with an organelle ratio (Organalle/Total_reads) greater than N}
 
 \item{filt.tss}{Logical. Whether or not to filter barcodes on based on proportion Tn5 sites over-
 lapping gene TSS. Defaults to TRUE. Filtering barcodes with this parameter is highly recommended.}

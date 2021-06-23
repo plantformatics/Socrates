@@ -91,6 +91,95 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T)
 }
 
 
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' countRemoveOrganelle
+#'
+#' This functions takes in an the read bed file, as well as a vector
+#' which contains organelle scaffolds, and identifies Tn5 integrations events which occured
+#' in organelles. These reads are then assigned to the object slot PtMT. Additional parameters
+#' allow for the removal of these reads so they don't interfere with ACR calling downstream.
+#'
+#' @param obj Object output from loadBEDandGenomeData. Required.
+#' @param org_scaffolds vector of organelle scaffold names
+#' @param remove_reads Logical of whether to remove reads from the BED file or not. Defautls to TRUE
+#'
+#' @rdname countRemoveOrganelle
+#'
+#' @export
+#'
+countRemoveOrganelle <- function(obj,
+                                 org_scaffolds=NULL,
+                                 remove_reads=FALSE){
+
+    if (missing(org_scaffolds)) {
+
+        message("... No Organelles Given, Returning All reads")
+
+    } else {
+
+        `%notin%` <- Negate(`%in%`)
+
+        #Declare organelle scaffolds
+        organelle = org_scaffolds
+
+        #ID regions within the organelle
+        org_group <- obj$bed$V1 %in% organelle
+
+        if (sum(org_group) == 0) {
+            message("No organeller reads identified ...")
+            message("Are you sure the given names were correct?")
+        }else{
+            message("Identified ", sum(org_group), " organeller reads ...")
+        }
+
+        #Subset bed to only those
+        organelle_sites <-  obj$bed[org_group, ]
+
+        #Count the number of organelle reads present per barcode
+        count_ID_number <- table(organelle_sites$V4)
+
+        #Gather All Names to ID read names missing
+        take_all_names <- unique(obj$bed$V4)
+
+        #Grab all names with zero values
+        cells_no_organelle_reads <- take_all_names[!(take_all_names %in% rownames(count_ID_number))]
+
+        #Generate array using Table
+        no_organelle_reads <- table(cells_no_organelle_reads)
+
+        #Re-assing all values to 1
+        no_organelle_reads[no_organelle_reads == 1] <- 0
+
+        #Combine all
+        zz <- c(no_organelle_reads, count_ID_number)
+
+        if (remove_reads == TRUE){
+
+            #Subsample bed so organelle reads do not interfere with ACR calls
+            keep_bed_group <- obj$bed$V1 %notin% organelle
+            final_bed <- subset(obj$bed, keep_bed_group)
+            obj$bed <- final_bed
+            obj$PtMt <- zz
+
+        } else {
+
+            message("... Keeping organelle reads. This may affect ACR calling...")
+            obj$PtMt <- zz
+
+        }
+
+        #Assign
+        obj$PtMt <- zz
+    }
+
+    return(obj)
+}
+
+
+
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
@@ -145,10 +234,11 @@ callACRs <- function(obj, genomesize=1.6e9, shift= -50, extsize=100,
 }
 
 
+
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
-#' buildMetaData
+#' buildMetaData_OG
 #'
 #' This function builds the meta data information for each barcode input from the Tn5 BED file.
 #' Execution of this function relies on several function from Bioconductor package GenomicRanges.
@@ -160,17 +250,34 @@ callACRs <- function(obj, genomesize=1.6e9, shift= -50, extsize=100,
 #' @param obj Object output from loadBEDandGenomeData. Required.
 #' @param tss.window Size of windows flanking TSS for estimating proportion of Tn5 integration sites
 #' near gene TSSs.
+#' @param organelle_scaffolds Organelle scaffolds vector. If given, remove annotations from Granges object
+#' which appear on organelles. Could potentially alter FRiP scores downstream as well as TSS
 #' @param verbose Logical. Whether to print information.
 #'
-#' @rdname buildMetaData
+#' @rdname buildMetaData_OG
 #' @export
 #'
-buildMetaData <- function(obj, tss.window=2000, verbose=T){
+buildMetaData <- function(obj,
+                          tss.window=2000,
+                          organelle_scaffolds=NULL,
+                          verbose=T){
 
     # split object
     bed <- obj$bed
-    gff <- obj$gff
-    acr <- obj$acr
+
+    # TO DO - Write catch in case the
+    # user hasn't previously run countRemoveOrganelle
+    if(is.null(obj$PtMt)){
+        skip.PtMt <- T
+        org_val <- obj$PtMt
+        gff <- obj$gff
+        acr <- obj$acr
+    }else{
+        skip.PtMt <- F
+        org_val <- obj$PtMt
+        gff <- obj$gff
+        acr <- obj$acr
+    }
 
     # count number of integration sites per barcode
     if(verbose){message(" - counting Tn5 sites per barcode ...")}
@@ -193,6 +300,16 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
     tss <- promoters(gff, upstream=tss.window, downstream=tss.window)
     tss <- tss[!duplicated(tss),]
 
+    if (missing(organelle_scaffolds) | skip.PtMt) {
+        tss <- promoters(gff, upstream=tss.window, downstream=tss.window)
+        tss <- tss[!duplicated(tss),]
+    } else {
+        if(verbose){message(" - removing organelle scaffolds from annotation ...")}
+        tss <- promoters(gff, upstream=tss.window, downstream=tss.window)
+        tss <- tss[!duplicated(tss),]
+        tss <- dropSeqlevels(tss, organelle_scaffolds, pruning.mode="tidy")
+    }
+
     # get reads that overlap tss
     if(verbose){message(" - counting Tn5 sites at TSSs per barcode ...")}
     tss.reads <- suppressWarnings(subsetByOverlaps(bed.gr, tss, ignore.strand=T))
@@ -205,17 +322,31 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
     acr.reads <- as.data.frame(acr.reads)
     acr.counts <- table(acr.reads$names)
 
+    if(verbose){message(" - finalizing meta data creation ...")}
+
     # merge
     counts <- counts[ids]
     tss.counts <- tss.counts[ids]
     acr.counts <- acr.counts[ids]
+    if(!skip.PtMt){
+        org.counts <- org_val[ids]
+    }
     counts[is.na(counts)] <- 0
     tss.counts[is.na(tss.counts)] <- 0
     acr.counts[is.na(acr.counts)] <- 0
+    if(!skip.PtMt){
+        org.counts[is.na(org.counts)] <- 0
+    }else{
+        org.counts <- rep(NA, length(ids))
+        names(org.counts) <- ids
+    }
+
+
     df <- data.frame(cellID=ids,
                      total=as.numeric(counts),
                      tss=as.numeric(tss.counts),
                      acrs=as.numeric(acr.counts),
+                     ptmt=as.numeric(org.counts),
                      row.names=ids)
 
     # return
@@ -223,6 +354,7 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
     obj$meta <- df
     return(obj)
 }
+
 
 
 ###################################################################################################
@@ -239,10 +371,13 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @param obj Object output from buildMetaData. Required.
 #' @param set.tn5.cutoff Override spline fitting to set minimum tn5 count per cell.
 #' Defaults to NULL.
-#' @param min.cells Lower limit on the number of identified cells. Defaults to 100.
+#' @param min.cells Lower limit on the number of identified cells. Defaults to 1000.
 #' @param max.cells Upper limit on the number of identified cells. Defaults to 15000.
 #' @param min.tn5 Lower threshold for the minimum number of Tn5 integration sites for retaining
 #' a barcode. Defaults to 1000.
+#' @param filt.org Logical. Whether or not to filter barcodes on based on proportion Tn5 sites occuring
+#' in an organelle. Defaults to FALSE. Expects organelles built off meta
+#' @param org.filter.thresh Remove cells with an organelle ratio (Organalle/Total_reads) greater than N
 #' @param filt.tss Logical. Whether or not to filter barcodes on based on proportion Tn5 sites over-
 #' lapping gene TSS. Defaults to TRUE. Filtering barcodes with this parameter is highly recommended.
 #' @param tss.min.freq Float. Minimum frequency of Tn5 sites near TSSs. Defaults to 0.2.
@@ -257,14 +392,16 @@ buildMetaData <- function(obj, tss.window=2000, verbose=T){
 #' @param prefix Character. Prefix output name for plots. If changed from the default (NULL), this will
 #' save the images to disk as a PDF.
 #'
-#' @rdname findCells
+#' @rdname findCells_OG
 #' @export
 #'
 findCells <- function(obj,
                       set.tn5.cutoff=NULL,
-                      min.cells=100,
+                      min.cells=1000,
                       max.cells=15000,
                       min.tn5=1000,
+                      filt.org=F,
+                      org.filter.thresh=0.8,
                       filt.tss=T,
                       tss.min.freq=0.2,
                       tss.z.thresh=3,
@@ -374,10 +511,39 @@ findCells <- function(obj,
         # return
         return(obj)
     }
+    .filterOrganelle <- function(obj, cell_threshold=0.8, remove_cells=FALSE, doplot=F, main=""){
+
+        x <- obj$meta.v1
+        x$ptmt.ratio <- x$ptmt/x$total
+
+        if (remove_cells == TRUE) {
+            message("... Filtering Cells based of Oragnelle Reads")
+            out_meta <- subset(x, x$ptmt.ratio <= cell_threshold)
+
+        } else {
+            message("... Not Filtering Cells on Organelle Ratio")
+            out_meta <- x
+        }
+
+        n.cells = nrow(out_meta)
+        if(doplot){
+            hist(x$ptmt.ratio, xlim=c(0,1),
+                 xlab="Organelle Ratio",
+                 ylab="Counts",
+                 main=main)
+            abline(v=cell_threshold, col="red", lty=2, lwd=2)
+            legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
+
+        }
+
+        #write back
+        obj$meta.v1 <- out_meta
+
+        return(obj)
+    }
 
     # get meta data
     x <- obj$meta
-
     # order DF by total Tn5 sites
     x <- x[order(x$total, decreasing=T),]
     rank <- log10(seq(1:nrow(x)))
@@ -390,8 +556,8 @@ findCells <- function(obj,
     Y <- predict(fit, newdata=X, deriv=1)
     xvals <- Y$x
     yvals <- Y$y
-    knee <- xvals[which.min(yvals[1:max.cells])]
-    cells <- which.min(yvals[1:max.cells])
+    knee <- xvals[which.min(yvals[min.cells:max.cells])]
+    cells <- which.min(yvals[min.cells:max.cells])
     reads <- (10^(min(df[1:cells,]$depth))) - 1
 
     # ensure reads > min.tn5
@@ -415,10 +581,13 @@ findCells <- function(obj,
     }
     reads <- 10^(depth[cells])
 
+
+    if(filt.org == T){plot_num = 4} else {plot_num = 3}
+
     # plot
     if(doplot){
         if(!is.null(prefix)){pdf(paste0(prefix,".QC_FIGURES.pdf"), width=12, height=4)}
-        layout(matrix(c(1:3), nrow=1))
+        layout(matrix(c(1:plot_num), nrow=1))
         plot(rank[(cells+1):length(rank)], depth[(cells+1):length(rank)],
              type="l", lwd=2, col="grey75", main=prefix,
              xlim=range(rank), ylim=range(depth),
@@ -433,6 +602,12 @@ findCells <- function(obj,
 
     # append meta
     obj$meta.v1 <- head(x, n=cells)
+
+    message("Making Dotplot")
+    # filter by Organelle
+    if(filt.org == T){
+        obj <- .filterOrganelle(obj, remove_cells=filt.org, cell_threshold = org.filter.thresh, doplot=doplot, main="Organelle Ratio")
+    }
 
     # filter by TSS
     if(filt.tss){
@@ -450,6 +625,8 @@ findCells <- function(obj,
         obj$meta.v2 <- obj$meta.v1
         obj$meta.v3 <- obj$meta.v2
     }
+
+
     if(doplot){
         if(!is.null(prefix)){dev.off()}
     }

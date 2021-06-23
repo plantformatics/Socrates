@@ -2,15 +2,18 @@
 % Please edit documentation in R/quality_control.R
 \name{buildMetaData}
 \alias{buildMetaData}
-\title{buildMetaData}
+\title{buildMetaData_OG}
 \usage{
-buildMetaData(obj, tss.window = 2000, verbose = T)
+buildMetaData(obj, tss.window = 2000, organelle_scaffolds = NULL, verbose = T)
 }
 \arguments{
 \item{obj}{Object output from loadBEDandGenomeData. Required.}
 
 \item{tss.window}{Size of windows flanking TSS for estimating proportion of Tn5 integration sites
 near gene TSSs.}
+
+\item{organelle_scaffolds}{Organelle scaffolds vector. If given, remove annotations from Granges object
+which appear on organelles. Could potentially alter FRiP scores downstream as well as TSS}
 
 \item{verbose}{Logical. Whether to print information.}
 }

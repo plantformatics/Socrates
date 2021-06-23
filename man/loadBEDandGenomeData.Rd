@@ -4,7 +4,7 @@
 \alias{loadBEDandGenomeData}
 \title{loadBEDandGenomeData}
 \usage{
-loadBEDandGenomeData(bed, ann, sizes, verbose = T)
+loadBEDandGenomeData(bed, ann, sizes, attribute = "Parent", verbose = T)
 }
 \arguments{
 \item{bed}{Path to Tn5 integration site bed file with barcode information.
