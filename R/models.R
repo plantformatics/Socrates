@@ -218,6 +218,7 @@ logisticModel <- function(obj,
 
     # return
     obj[[slotName]] <- res
+    obj$norm_method <- "logisticModel"
     return(obj)
 }
 
@@ -774,6 +775,7 @@ regModel <- function(obj,
 
     # attach residuals to object
     obj[[slotName]] <- res
+    obj$norm_method <- "regModel"
 
     # return
     return(obj)
@@ -1149,6 +1151,7 @@ regModel2 <- function(obj,
 
     # return
     obj[[slotName]] <- res
+    obj$norm_method <- "regModel2"
     return(obj)
 }
 
@@ -1229,6 +1232,7 @@ tfidf <- function(obj,
     rownames(tf_idf_counts) = rownames(bmat)
     colnames(tf_idf_counts) = colnames(bmat)
     obj[[slotName]] <- Matrix(tf_idf_counts, sparse=T)
+    obj$norm_method <- "tfidf"
 
     # return
     return(obj)

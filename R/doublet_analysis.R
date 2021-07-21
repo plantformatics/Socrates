@@ -29,7 +29,6 @@
 #' @export
 #'
 detectDoublets <- function(obj=NULL,
-                           normModel='regModel',
                            nTrials=5, 
                            nSample=1000, 
                            k=10, 
@@ -142,7 +141,7 @@ detectDoublets <- function(obj=NULL,
                                       d=obj$SVD_model$d, 
                                       n.pcs=n.pcs,
                                       idx.keep=obj$SVD_model$keep_pcs,
-                                      normModel=normModel)
+                                      normModel=obj$norm_method)
                 return(simSVD)
             })
             outs <- do.call(rbind, outs)
