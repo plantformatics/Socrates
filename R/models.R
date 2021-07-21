@@ -454,10 +454,11 @@ regModel <- function(obj,
     #              dimnames = list(peaks, rownames(regressor_data)))
 
     # iterate
-    if(verbose){
-        pb <- txtProgressBar(min = 0, max = max_bin, style = 3)
-    }
+    #if(verbose){
+    #    pb <- txtProgressBar(min = 0, max = max_bin, style = 3)
+    #}
     res <- mclapply((1:max_bin), function(i){
+        if(verbose){if((i %% 10 == 0)){message("   * finished collecting residuals for ", i, " of ", max_bin," peaks/bins ...")}}
         peaks_bin <- peaks[bin_ind == i]
         if(link=="logit"){
             mu <- exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)) /
@@ -470,44 +471,23 @@ regModel <- function(obj,
         y <- as.matrix(x[peaks_bin, , drop=FALSE])
         if(type=="deviance"){
             dat <- deviance_residual(y, mu, 1)
-            spm <- matrix_to_triplets(dat)
-            colnames(spm) <- c("i","j","x")
-            spm <- as.data.frame(spm)
-            spm$i <- peaks_bins[spm$i]
-            spm$j <- rownames(regressor_data)[spm$j]
-            spm <- subset(spm, spm$x > 0)
             #res[peaks_bin, ] <- deviance_residual(y, mu, 1)
         }else if(type=="pearson"){
             dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-            spm <- matrix_to_triplets(dat)
-            colnames(spm) <- c("i","j","x")
-            spm <- as.data.frame(spm)
-            spm$i <- peaks_bins[spm$i]
-            spm$j <- rownames(regressor_data)[spm$j]
-            spm <- subset(spm, spm$x > 0)
             #res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }else if(type=="response"){
             dat <- (y - mu)
-            spm <- matrix_to_triplets(dat)
-            colnames(spm) <- c("i","j","x")
-            spm <- as.data.frame(spm)
-            spm$i <- peaks_bins[spm$i]
-            spm$j <- rownames(regressor_data)[spm$j]
-            spm <- subset(spm, spm$x > 0)
             #res[peaks_bin,] <- (y - mu)
         }else{
             dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-            spm <- matrix_to_triplets(dat)
-            colnames(spm) <- c("i","j","x")
-            spm <- as.data.frame(spm)
-            spm$i <- peaks_bins[spm$i]
-            spm$j <- rownames(regressor_data)[spm$j]
-            spm <- subset(spm, spm$x > 0)
             #res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }
-        if(verbose){
-            setTxtProgressBar(pb, i)
-        }
+        spm <- matrix_to_triplets(dat)
+        colnames(spm) <- c("i","j","x")
+        spm <- as.data.frame(spm)
+        spm$i <- peaks_bin[spm$i]
+        spm$j <- rownames(regressor_data)[spm$j]
+        spm <- subset(spm, spm$x > 0)
         return(spm)
     }, mc.cores=nthreads)
         # if(is.null(variates)){
@@ -525,9 +505,9 @@ regModel <- function(obj,
         #     }
         # }
 
-    if(verbose){
-        close(pb)
-    }
+    #if(verbose){
+    #    close(pb)
+    #}
 
     # make sparse
     res <- do.call(rbind, res)
