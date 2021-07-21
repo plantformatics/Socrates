@@ -163,6 +163,8 @@ projectUMAP <- function(obj,
     colnames(umap.out) <- c("umap1", "umap2")
 
     # return object
+    obj$meta$umap1 <- umap.out[rownames(obj$meta),]$umap1
+    obj$meta$umap2 <- umap.out[rownames(obj$meta),]$umap2
     obj[[umap_slotName]] <- umap.out
     obj$UMAP_model <- umap.res
     return(obj)

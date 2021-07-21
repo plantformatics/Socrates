@@ -40,6 +40,8 @@ plotUMAP <- function(obj,
         cluster_slotName <- "meta"
     }
     b <- obj[[cluster_slotName]]
+    b <- b[complete.cases(b$umap1),]
+    b <- b[complete.cases(b$umap2),]
 
     # test if column is present
     if(!column %in% colnames(b)){
