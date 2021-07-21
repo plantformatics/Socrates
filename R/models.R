@@ -328,14 +328,9 @@ regModel <- function(obj,
     deviance_residual   <- function(y, mu, wt){
         d.res <- sqrt(pmax((binomial()$dev.resid)(y, mu, wt),0))
         d.res <- ifelse(y > mu, d.res, -d.res)
-        d.res[d.res < 0] <- 0
         return(d.res)
     }
-    pearson_residual    <- function(y, mu, theta){
-        p.res <- (y-mu)/sqrt((mu*(1-mu))*theta)
-        p.res[p.res < 0] <- 0
-        return(p.res)
-    }
+    pearson_residual    <- function(y, mu, theta){(y-mu)/sqrt((mu*(1-mu))*theta)}
     robust_scale        <- function(x){return((x - median(x)) / (mad(x) + .Machine$double.eps))}
     ChunkPoints         <- function(dsize, csize) {
         return(vapply(
@@ -455,10 +450,10 @@ regModel <- function(obj,
     max_bin <- max(bin_ind)
 
     # prepare residual  matrix
-    #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
-    #              dimnames = list(peaks, rownames(regressor_data)))
-    res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
-                  dimnames = list(peaks, rownames(regressor_data)), sparse=T)
+    res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
+                  dimnames = list(peaks, rownames(regressor_data)))
+    #res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
+    #              dimnames = list(peaks, rownames(regressor_data)), sparse=T)
 
     # iterate
     if(verbose){
@@ -476,16 +471,13 @@ regModel <- function(obj,
         }
         y <- as.matrix(x[peaks_bin, , drop=FALSE])
         if(type=="deviance"){
-            res[peaks_bin, ] <- Matrix(deviance_residual(y, mu, 1), sparse=T)
+            res[peaks_bin, ] <- deviance_residual(y, mu, 1)
         }else if(type=="pearson"){
-            res[peaks_bin, ] <- Matrix(pearson_residual(y, mu, pars_fit[peaks_bin,'theta']), sparse=T)
+            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }else if(type=="response"){
-            resp.val <- y - mu
-            resp.val[resp.val < 0] <- 0
-            res[peaks_bin,] <- Matrix(resp.val, sparse=T)
-
+            res[peaks_bin,] <- y - mu
         }else{
-            res[peaks_bin, ] <- Matrix(pearson_residual(y, mu, pars_fit[peaks_bin,'theta']), sparse=T)
+            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }
         setTxtProgressBar(pb,i)
     }#, mc.cores=nthreads)
@@ -516,9 +508,9 @@ regModel <- function(obj,
     #                     j=as.numeric(res$j),
     #                     x=as.numeric(res$x),
     #                     dimnames=list(levels(res$i), levels(res$j)))
-    # res <- res[peaks, rownames(regressor_data)]
-    # res@x[res@x < 0] <- 0
-    # res <- drop0(res, tol=0)
+    res[res < 0] <- 0
+    res <- Matrix(res, sparse=T)
+    res <- drop0(res, tol=0)
 
     # remove na
     res[is.na(res)] <- 0
