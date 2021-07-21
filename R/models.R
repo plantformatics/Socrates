@@ -458,7 +458,7 @@ regModel <- function(obj,
     #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
     #              dimnames = list(peaks, rownames(regressor_data)))
     res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
-                  dimnames = list(peaks, rownames(regressor_data)))
+                  dimnames = list(peaks, rownames(regressor_data)), sparse=T)
 
     # iterate
     if(verbose){
