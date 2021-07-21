@@ -26,8 +26,9 @@ catagorically, while continuous numeric values are plotted along a spectrum.}
 
 \item{opaque}{float, set the transparency of point colors. Defaults to 1.}
 
-\item{cluster_slotName}{character, string specifying the desired UMAP slot to use for plotting.
-Deafults to "UMAP".}
+\item{cluster_slotName}{character, string specifying the desired meta slot to use for plotting.
+Defaults to "Clusters". If callClusters hasnt been run (or is missing from the object), slot
+meta is used instead.}
 
 \item{xlab}{character string for x-axis name.}
 

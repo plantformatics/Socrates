@@ -6,7 +6,6 @@
 \usage{
 detectDoublets(
   obj = NULL,
-  normModel = "regModel",
   nTrials = 5,
   nSample = 1000,
   k = 10,
@@ -20,11 +19,6 @@ detectDoublets(
 \item{obj}{Socrates object. For best results, use downstream of the function cleanCells prior to
 normalization.}
 
-\item{normModel}{Character string. normalization model for embedding synthetic doublets. Options include
-'regModel', 'regModel2', 'logisticModel', and 'tfidf'. TF-IDF is the default due to its quicker run time.
-But the other models are also available if the user wish to maintain a consistent normalization scheme
-as the intended analysis.}
-
 \item{nTrials}{Numeric. Number of times nSample cells are simulated.}
 
 \item{nSample}{Numeric. Number of synthetic doublets to create per trial.}
@@ -37,6 +31,11 @@ from the narbor package.}
 \item{seed}{Numeric.}
 
 \item{threads}{Numeric. Number of threads to use for mclapply from the parallel package.}
+
+\item{normModel}{Character string. normalization model for embedding synthetic doublets. Options include
+'regModel', 'regModel2', 'logisticModel', and 'tfidf'. TF-IDF is the default due to its quicker run time.
+But the other models are also available if the user wish to maintain a consistent normalization scheme
+as the intended analysis.}
 }
 \description{
 This function estimates doublet likelihood via synthetic doublet creation and enrichment

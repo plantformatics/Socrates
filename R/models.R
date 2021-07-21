@@ -10,6 +10,7 @@
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
 #' @importFrom Matrix colSums
+#' @importFrom CMF matrix_to_triplets
 #' @import doSNOW
 #' @import iterators
 #' @import itertools
