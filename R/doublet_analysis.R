@@ -82,28 +82,27 @@ detectDoublets <- function(obj=NULL,
         
         # run normalization
         if(normModel == 'regModel'){
-            sobj <- regModel(sobj, nthreads=threads, make.sparse=T)
+            sobj <- regModel(sobj, nthreads=threads)
         }else if(normModel == 'regModel2'){
-            sobj <- regModel2(sobj, nthreads=threads, make.sparse=T)
+            sobj <- regModel2(sobj, nthreads=threads)
         }else if(normModel == 'tfidf'){
             sobj <- tfidf(sobj)
         }else if(normModel == 'logisticModel'){
             sobj <- logisticModel(sobj, nthreads=threads)
         }
-        mat <- sobj$residuals
         
         # get V matrix
-        V <- Matrix::t(mat) %*% v %*% Matrix::diag(1/d)
+        V <- Matrix::t(sobj$residuals) %*% v %*% Matrix::diag(1/d)
         
         # diagonal
-        if(n.pcs > length(d)){
-            n.pcs <- length(d)
+        if(n.pcs > ncol(u)){
+            n.pcs <- ncol(u)
         }
         svdDiag <- matrix(0, nrow=n.pcs, ncol=n.pcs)
         diag(svdDiag) <- d
         matSVD <- Matrix::t(svdDiag %*% Matrix::t(V))
         matSVD <- as.matrix(matSVD)
-        rownames(matSVD) <- colnames(mat)
+        rownames(matSVD) <- colnames(sobj$residuals)
         colnames(matSVD) <- paste0("PC_",seq_len(ncol(matSVD)))
         matSVD <- matSVD[,idx.keep]
         return(matSVD)
@@ -119,15 +118,12 @@ detectDoublets <- function(obj=NULL,
     set.seed(seed)
     message(" - Creating synthetic doublets ...")
     simMat <- mclapply(seq_len(nTrials), function(y){
-            if(y %% 5 == 0){
-                message("   ~ iterated over ", y, " of ", nTrials, " trials...")
-                gc()
-            }
             outs <- lapply(seq_along(sampleRatio1), function(x){
                 idx1 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                 idx2 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                 simulatedMat <- .sampleSparseMat(mat = mat[,idx1], sampleRatio = sampleRatio1[x]) + 
                     .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
+                simulatedMat@x <- ifelse(simulatedMat@x > 1, 1, simulatedMat@x)
                 b <- data.frame(cellIDs=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))), 
                                 row.names=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))))
                 b$nSites   <- Matrix::colSums(simulatedMat)
@@ -145,9 +141,10 @@ detectDoublets <- function(obj=NULL,
                 return(simSVD)
             })
             outs <- do.call(rbind, outs)
-        }, mc.cores = threads)
+    }, mc.cores = threads)
     simMat <- do.call(rbind, simMat)
     simMat <- as.matrix(simMat)
+    print(head(simMat))
     simMat <- t(apply(simMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
     message(" - Created ", nrow(simMat), " synthetic doublets ...")
     
