@@ -97,6 +97,9 @@ detectDoublets <- function(obj=NULL,
         V <- Matrix::t(mat) %*% v %*% Matrix::diag(1/d)
         
         # diagonal
+        if(n.pcs > length(d)){
+            n.pcs <- length(d)
+        }
         svdDiag <- matrix(0, nrow=n.pcs, ncol=n.pcs)
         diag(svdDiag) <- d
         matSVD <- Matrix::t(svdDiag %*% Matrix::t(V))
