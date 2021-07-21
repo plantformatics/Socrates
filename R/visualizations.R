@@ -14,8 +14,9 @@
 #' catagorically, while continuous numeric values are plotted along a spectrum.
 #' @param cex float, set the point size. Defaults to 0.3.
 #' @param opaque float, set the transparency of point colors. Defaults to 1.
-#' @param cluster_slotName character, string specifying the desired UMAP slot to use for plotting.
-#' Deafults to "UMAP".
+#' @param cluster_slotName character, string specifying the desired meta slot to use for plotting.
+#' Defaults to "Clusters". If callClusters hasnt been run (or is missing from the object), slot
+#' meta is used instead.
 #' @param xlab character string for x-axis name.
 #' @param ylab character string for y-axis name.
 #' @param main character string for graph title.
@@ -35,13 +36,14 @@ plotUMAP <- function(obj,
 
     # set b as meta data
     if(is.null(obj[[cluster_slotName]])){
-        stop(" - ERROR: final.meta slot from callClusters is missing from object ...")
+        #stop(" - ERROR: final.meta slot from callClusters is missing from object ...")
+        cluster_slotName <- "meta"
     }
     b <- obj[[cluster_slotName]]
 
     # test if column is present
     if(!column %in% colnames(b)){
-        stop(" - ERROR: column header, ", column, ", is missing from meta ...")
+        stop(" - ERROR: column header, ", column, ", is missing from ",cluster_slotName, " ...")
     }
 
     # cols
