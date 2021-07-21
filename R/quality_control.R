@@ -97,14 +97,14 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T)
 ###################################################################################################
 #' countRemoveOrganelle
 #'
-#' This functions takes in an the read bed file, as well as a vector
+#' This functions takes in an the Tn5 bed file, as well as a vector
 #' which contains organelle scaffolds, and identifies Tn5 integrations events which occured
 #' in organelles. These reads are then assigned to the object slot PtMT. Additional parameters
 #' allow for the removal of these reads so they don't interfere with ACR calling downstream.
 #'
 #' @param obj Object output from loadBEDandGenomeData. Required.
 #' @param org_scaffolds vector of organelle scaffold names
-#' @param remove_reads Logical of whether to remove reads from the BED file or not. Defautls to TRUE
+#' @param remove_reads Logical of whether to remove reads from the BED file or not. Defaults to TRUE
 #'
 #' @rdname countRemoveOrganelle
 #'

@@ -40,7 +40,7 @@ filterSingle  <- function(pro,
     }
 
     # get nearest neighbors
-    topk <- get.knn(pro[,vars], k=k)
+    topk <- FNN::get.knn(pro[,vars], k=k)
     cell.dists <- as.matrix(topk$nn.dist)
     rownames(cell.dists) <- rownames(pro)
     colnames(cell.dists) <- paste0("k",seq(1:ncol(cell.dists)))

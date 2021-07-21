@@ -6,8 +6,8 @@
 \usage{
 projectUMAP(
   obj,
-  m.dist = 0.1,
-  k.near = 15,
+  m.dist = 0.01,
+  k.near = 40,
   metric = "cosine",
   svd_slotName = "PCA",
   umap_slotName = "UMAP",

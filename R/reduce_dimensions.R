@@ -62,7 +62,8 @@ reduceDims <- function(obj,
     if(cor.max < 1){
         depth <- Matrix::colSums(obj$counts[,rownames(pc)])
         cors <- apply(pc, 2, function(u) cor(u,depth,method="spearman"))
-        pc <- pc[,abs(cors) < cor.max]
+        idx.keep <- abs(cors) < cor.max
+        pc <- pc[,idx.keep]
     }
 
     # convert l2 norm
@@ -103,6 +104,11 @@ reduceDims <- function(obj,
 
     # return
     obj[[svd_slotName]] <- pc
+    obj$SVD_model <- list()
+    obj$SVD_model$d <- pcs$d
+    obj$SVD_model$v <- pcs$v
+    obj$SVD_model$u <- pcs$u
+    obj$SVD_model$keep_pcs <- idx.keep
     return(obj)
 
 }
@@ -127,8 +133,8 @@ reduceDims <- function(obj,
 #' @rdname projectUMAP
 #' @export
 projectUMAP <- function(obj,
-                        m.dist=0.1,
-                        k.near=15,
+                        m.dist=0.01,
+                        k.near=40,
                         metric="cosine",
                         svd_slotName="PCA",
                         umap_slotName="UMAP",
@@ -148,14 +154,16 @@ projectUMAP <- function(obj,
                            verbose=verbose,
                            min_dist=m.dist,
                            n_neighbors=k.near,
-                           metric=metric)
+                           metric=metric,
+                           ret_model=T)
 
     # convert to data frame
-    umap.out <- as.data.frame(umap.res)
+    umap.out <- as.data.frame(umap.res$embedding)
     rownames(umap.out) <- rownames(obj[[svd_slotName]])
     colnames(umap.out) <- c("umap1", "umap2")
 
     # return object
     obj[[umap_slotName]] <- umap.out
+    obj$UMAP_model <- umap.res
     return(obj)
 }

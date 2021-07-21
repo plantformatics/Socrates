@@ -17,9 +17,9 @@ regModel(
   weights = NULL,
   method = "lm",
   alpha = 0.5,
-  center.resid = T,
+  center.resid = F,
   scale.resid = F,
-  make.sparse = F,
+  make.sparse = T,
   verbose = FALSE,
   slotName = "residuals"
 )

@@ -34,5 +34,5 @@ Depends:
     irlba (>= 2.3.3),
     uwot (>= 0.1.8),
     scales (>= 1.1.0),
-    RColorBrewer (>= 1.1.2)
-    
+    RColorBrewer (>= 1.1.2),
+    nabor (>= 0.5.0)   

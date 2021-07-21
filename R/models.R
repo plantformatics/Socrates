@@ -289,9 +289,9 @@ regModel <- function(obj,
                      weights=NULL,
                      method="lm",
                      alpha=0.5,
-                     center.resid=T,
+                     center.resid=F,
                      scale.resid=F,
-                     make.sparse=F,
+                     make.sparse=T,
                      verbose=FALSE,
                      slotName="residuals"){
 
@@ -383,7 +383,7 @@ regModel <- function(obj,
     pars <- lapply(seq(1:nrow(x.sub)), function(j){
         df <- cbind(y, x.sub[j,])
         colnames(df) <- c(colnames(y), "z")
-	df$z <- as.factor(df$z)
+	    df$z <- as.factor(df$z)
         suppressWarnings(mod <- glm(form,
                                     data=df,
                                     family=quasibinomial(link = link)))
@@ -503,8 +503,9 @@ regModel <- function(obj,
 
     # make sparse?
     if(make.sparse & is.null(variates)){
-        res[res < 0] <- 0
         res <- Matrix(res, sparse=T)
+        res@x[res@x < 0] <- 0
+        res <- drop0(res, tol=0)
     }
 
     # report intial residuals
@@ -1137,8 +1138,9 @@ regModel2 <- function(obj,
 
     # make sparse?
     if(make.sparse){
-        res[res < 0] <- 0
         res <- Matrix(res, sparse=T)
+        res@x[res@x < 0] <- 0
+        res <- drop0(res, tol=0)
     }
 
     # report intial residuals
