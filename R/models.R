@@ -264,12 +264,12 @@ logisticModel <- function(obj,
 #' analyzed if using "elasticNet". Defaults to "lm".
 #' @param alpha numeric, sets the alpha parameter for glmnet. 0 for LASSO like regression, 1 for
 #' ridge regression. Default 0.5 for elastic net regression.
-#' @param center.resid logical, whether to zero-center residuals. Defaults to TRUE.
+#' @param center.resid logical, whether to zero-center residuals. Defaults to FALSE.
 #' @param scale.resid logical, whther to standardize residuals. Defaults to FALSE.
 #' @param make.sparse logical, whether or not to set negative values to 0, and reduce memory usage.
 #' Setting this parameter to TRUE has negligible effects on downstream results. Setting make.sparse
-#' to TRUE will override center.resid and scale.resid arguments, setting them to FALSE. make.sparse
-#' is mutally exclusive with the argument 'variates'. Defaults to FALSE.
+#' to TRUE (default) will override center.resid and scale.resid arguments, setting them to FALSE. make.sparse
+#' is mutally exclusive with the argument 'variates'. Defaults to TRUE
 #' @param verbose logical. Defaults to FALSE.
 #' @param slotName character, specify the slot name for saving residuals. Useful for saving
 #' multiple normalization steps. Note, make sure to update the slotName argument for
@@ -449,14 +449,14 @@ regModel <- function(obj,
     max_bin <- max(bin_ind)
 
     # prepare residual  matrix
-    res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
-                  dimnames = list(peaks, rownames(regressor_data)))
+    #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
+    #              dimnames = list(peaks, rownames(regressor_data)))
 
     # iterate
     if(verbose){
         pb <- txtProgressBar(min = 0, max = max_bin, style = 3)
     }
-    for (i in 1:max_bin){
+    res <- mclapply((1:max_bin), function(i){
         peaks_bin <- peaks[bin_ind == i]
         if(link=="logit"){
             mu <- exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)) /
@@ -468,46 +468,81 @@ regModel <- function(obj,
         }
         y <- as.matrix(x[peaks_bin, , drop=FALSE])
         if(type=="deviance"){
-            res[peaks_bin, ] <- deviance_residual(y, mu, 1)
+            dat <- deviance_residual(y, mu, 1)
+            spm <- matrix_to_triplets(dat)
+            colnames(spm) <- c("i","j","x")
+            spm <- as.data.frame(spm)
+            spm$i <- peaks_bins[spm$i]
+            spm$j <- rownames(regressor_data)[spm$j]
+            spm <- subset(spm, spm$x > 0)
+            #res[peaks_bin, ] <- deviance_residual(y, mu, 1)
         }else if(type=="pearson"){
-            res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            spm <- matrix_to_triplets(dat)
+            colnames(spm) <- c("i","j","x")
+            spm <- as.data.frame(spm)
+            spm$i <- peaks_bins[spm$i]
+            spm$j <- rownames(regressor_data)[spm$j]
+            spm <- subset(spm, spm$x > 0)
+            #res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }else if(type=="response"){
-            res[peaks_bin,] <- (y - mu)
+            dat <- (y - mu)
+            spm <- matrix_to_triplets(dat)
+            colnames(spm) <- c("i","j","x")
+            spm <- as.data.frame(spm)
+            spm$i <- peaks_bins[spm$i]
+            spm$j <- rownames(regressor_data)[spm$j]
+            spm <- subset(spm, spm$x > 0)
+            #res[peaks_bin,] <- (y - mu)
         }else{
-            res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-        }
-        if(is.null(variates)){
-            if(make.sparse==F){
-                if(center.resid==T & scale.resid==F){
-                    res[peaks_bin,] <- t(apply(res[peaks_bin,], 1, function(pp){
-                        pp - mean(pp, na.rm=T)
-                    }))
-                }
-                if(scale.resid==T){
-                    res[peaks_bin,] <- t(apply(res[peaks_bin,], 1, function(pp){
-                        (pp - mean(pp, na.rm=T))/sd(pp, na.rm=T)
-                    }))
-                }
-            }
+            dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            spm <- matrix_to_triplets(dat)
+            colnames(spm) <- c("i","j","x")
+            spm <- as.data.frame(spm)
+            spm$i <- peaks_bins[spm$i]
+            spm$j <- rownames(regressor_data)[spm$j]
+            spm <- subset(spm, spm$x > 0)
+            #res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }
         if(verbose){
             setTxtProgressBar(pb, i)
         }
-    }
+        return(spm)
+    }, mc.cores=nthreads)
+        # if(is.null(variates)){
+        #     if(make.sparse==F){
+        #         if(center.resid==T & scale.resid==F){
+        #             res[peaks_bin,] <- t(apply(res[peaks_bin,], 1, function(pp){
+        #                 pp - mean(pp, na.rm=T)
+        #             }))
+        #         }
+        #         if(scale.resid==T){
+        #             res[peaks_bin,] <- t(apply(res[peaks_bin,], 1, function(pp){
+        #                 (pp - mean(pp, na.rm=T))/sd(pp, na.rm=T)
+        #             }))
+        #         }
+        #     }
+        # }
+
     if(verbose){
         close(pb)
     }
 
+    # make sparse
+    res <- do.call(rbind, res)
+    res$i <- factor(res$i)
+    res$j <- factor(res$j)
+    res <- sparseMatrix(i=as.numeric(res$i),
+                        j=as.numeric(res$j),
+                        x=as.numeric(res$x),
+                        dimnames=list(levels(res$i), levels(res$j)))
+    res <- res[peaks, rownames(regressor_data)]
+    res@x[res@x < 0] <- 0
+    res <- drop0(res, tol=0)
+
     # remove na
     res[is.na(res)] <- 0
-    res <- res[rowSums(res == 0) != ncol(res),]
-
-    # make sparse?
-    if(make.sparse & is.null(variates)){
-        res <- Matrix(res, sparse=T)
-        res@x[res@x < 0] <- 0
-        res <- drop0(res, tol=0)
-    }
+    res <- res[Matrix::rowSums(res == 0) != ncol(res),]
 
     # report intial residuals
     res.range <- range(res)
