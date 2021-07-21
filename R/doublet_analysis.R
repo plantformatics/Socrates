@@ -230,7 +230,7 @@ detectDoublets <- function(obj=NULL,
     out$dSVD <- allMat
     out$dUMAP <- proj.umap
     obj$doublets <- out
-    
+    obj$meta$doubletscore <- obj$doublets$doubletEnrichUMAP[rownames(obj$meta)]
     return(obj)
         
 }
