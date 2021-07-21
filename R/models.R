@@ -328,9 +328,14 @@ regModel <- function(obj,
     deviance_residual   <- function(y, mu, wt){
         d.res <- sqrt(pmax((binomial()$dev.resid)(y, mu, wt),0))
         d.res <- ifelse(y > mu, d.res, -d.res)
+        d.res <- Matrix(d.res, sparse=T)
+        d.res@x[d.res@x < 0] <- 0
+        d.res <- drop0(d.res, tol=0)
         return(d.res)
     }
-    pearson_residual    <- function(y, mu, theta){(y-mu)/sqrt((mu*(1-mu))*theta)}
+    pearson_residual    <- function(y, mu, theta){
+        p.res <- Matrix((y-mu)/sqrt((mu*(1-mu))*theta), sparse=T)
+    }
     robust_scale        <- function(x){return((x - median(x)) / (mad(x) + .Machine$double.eps))}
     ChunkPoints         <- function(dsize, csize) {
         return(vapply(
@@ -473,17 +478,12 @@ regModel <- function(obj,
         if(type=="deviance"){
             res[peaks_bin, ] <- deviance_residual(y, mu, 1)
         }else if(type=="pearson"){
-            #dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-            res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }else if(type=="response"){
-            #dat <- (y - mu)
-            res[peaks_bin,] <- (y - mu)
+            res[peaks_bin,] <- Matrix((y - mu), sparse=T)
         }else{
-            #dat <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-            res[peaks_bin,] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }
-        res@x[res@x < 0] <- 0
-        res <- drop0(res, tol=0)
         setTxtProgressBar(pb,i)
     }#, mc.cores=nthreads)
         # if(is.null(variates)){
