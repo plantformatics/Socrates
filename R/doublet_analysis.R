@@ -119,28 +119,28 @@ detectDoublets <- function(obj=NULL,
     message(" - Creating synthetic doublets ...")
     simMat <- mclapply(seq_len(nTrials), function(y){
                 outs <- lapply(seq_along(sampleRatio1), function(x){
-                idx1 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
-                idx2 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
-                simulatedMat <- .sampleSparseMat(mat = mat[,idx1], sampleRatio = sampleRatio1[x]) + 
-                    .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
-                simulatedMat@x[simulatedMat@x > 1] <- 1
-                b <- data.frame(cellIDs=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))), 
-                                row.names=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))))
-                b$nSites   <- Matrix::colSums(simulatedMat)
-                b$log10nSites <- log10(b$nSites)
-                colnames(simulatedMat) <- rownames(b)
-                rownames(simulatedMat) <- rownames(mat)
-                simobj <- list(counts=simulatedMat, meta=b)
-                simSVD <- .projectSVD(simobj, 
-                                      u=obj$SVD_model$u, 
-                                      v=obj$SVD_model$v, 
-                                      d=obj$SVD_model$d, 
-                                      n.pcs=n.pcs,
-                                      idx.keep=obj$SVD_model$keep_pcs,
-                                      normModel=obj$norm_method)
-                return(simSVD)
-            })
-            outs <- do.call(rbind, outs)
+                    idx1 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
+                    idx2 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
+                    simulatedMat <- .sampleSparseMat(mat = mat[,idx1], sampleRatio = sampleRatio1[x]) + 
+                        .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
+                    simulatedMat@x[simulatedMat@x > 1] <- 1
+                    b <- data.frame(cellIDs=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))), 
+                                    row.names=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))))
+                    b$nSites   <- Matrix::colSums(simulatedMat)
+                    b$log10nSites <- log10(b$nSites)
+                    colnames(simulatedMat) <- rownames(b)
+                    rownames(simulatedMat) <- rownames(mat)
+                    simobj <- list(counts=simulatedMat, meta=b)
+                    simSVD <- .projectSVD(simobj, 
+                                          u=obj$SVD_model$u, 
+                                          v=obj$SVD_model$v, 
+                                          d=obj$SVD_model$d, 
+                                          n.pcs=n.pcs,
+                                          idx.keep=obj$SVD_model$keep_pcs,
+                                          normModel=obj$norm_method)
+                    return(simSVD)
+                })
+                outs <- do.call(rbind, outs)
     }, mc.cores = threads)
     simMat <- do.call(rbind, simMat)
     simMat <- as.matrix(simMat)
