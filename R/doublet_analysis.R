@@ -118,12 +118,12 @@ detectDoublets <- function(obj=NULL,
     set.seed(seed)
     message(" - Creating synthetic doublets ...")
     simMat <- mclapply(seq_len(nTrials), function(y){
-            outs <- lapply(seq_along(sampleRatio1), function(x){
+                outs <- lapply(seq_along(sampleRatio1), function(x){
                 idx1 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                 idx2 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                 simulatedMat <- .sampleSparseMat(mat = mat[,idx1], sampleRatio = sampleRatio1[x]) + 
                     .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
-                simulatedMat@x <- ifelse(simulatedMat@x > 1, 1, simulatedMat@x)
+                simulatedMat@x[simulatedMat@x > 1] <- 1
                 b <- data.frame(cellIDs=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))), 
                                 row.names=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))))
                 b$nSites   <- Matrix::colSums(simulatedMat)
@@ -144,7 +144,6 @@ detectDoublets <- function(obj=NULL,
     }, mc.cores = threads)
     simMat <- do.call(rbind, simMat)
     simMat <- as.matrix(simMat)
-    print(head(simMat))
     simMat <- t(apply(simMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
     message(" - Created ", nrow(simMat), " synthetic doublets ...")
     

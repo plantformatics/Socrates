@@ -479,7 +479,7 @@ regModel <- function(obj,
         }else{
             res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
         }
-        setTxtProgressBar(pb,i)
+        if(verbose){setTxtProgressBar(pb, i)}
     }#, mc.cores=nthreads)
         # if(is.null(variates)){
         #     if(make.sparse==F){
