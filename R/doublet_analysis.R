@@ -12,18 +12,12 @@
 #'
 #' @param obj Socrates object. For best results, use downstream of the function cleanCells prior to 
 #' normalization. 
-#' @param normModel Character string. normalization model for embedding synthetic doublets. Options include
-#' 'regModel', 'regModel2', 'logisticModel', and 'tfidf'. TF-IDF is the default due to its quicker run time.
-#' But the other models are also available if the user wish to maintain a consistent normalization scheme 
-#' as the intended analysis. 
 #' @param nTrials Numeric. Number of times nSample cells are simulated. 
 #' @param nSample Numeric. Number of synthetic doublets to create per trial.
 #' @param k Numeric. Number of nearest neighbors to search for when estimating doublet enrichment via knn 
 #' from the narbor package. 
 #' @param n.pcs Numeric. Number of PCS/SVD components to retain when reducing dimensions. 
-#' @param seed Numeric. 
 #' @param threads Numeric. Number of threads to use for mclapply from the parallel package.
-#'  
 #'
 #' @rdname detectDoublets
 #' @export
@@ -33,16 +27,11 @@ detectDoublets <- function(obj=NULL,
                            nSample=1000, 
                            k=10, 
                            n.pcs=50,
-                           seed=1, 
-                           threads=1,
-                           svd_slot="PCA"){
+                           threads=1){
     
     # pre-checks
     if(is.null(obj)){
         stop("! Socrates object is required ...")
-    }
-    if(is.null(obj[[svd_slot]])){
-        stop("! Socrates object", svd_slot, " is empty. Please run reduceDims first or check that the specified slot name is correct ...")
     }
     
     # hidden functions
@@ -109,24 +98,32 @@ detectDoublets <- function(obj=NULL,
         
     }
     
+    
+    ##############################################################################
+    # Simulate doublets
+    ##############################################################################
+    
     # specify objects
     sampleRatio1 <- c(0.5)    
     sampleRatio2 <- c(0.5)
     mat <- obj$counts
     
+    # scale nTrials by number of cells
+    nTrials <- nTrials * max( floor(nrow(obj$meta) / nSample), 1 )
+    
     # simulated matrix
-    set.seed(seed)
+    set.seed(1)
     message(" - Creating synthetic doublets ...")
     simMat <- mclapply(seq_len(nTrials), function(y){
                 outs <- lapply(seq_along(sampleRatio1), function(x){
                     idx1 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                     idx2 <- sample(seq_len(ncol(mat)), nSample, replace = TRUE)
                     simulatedMat <- .sampleSparseMat(mat = mat[,idx1], sampleRatio = sampleRatio1[x]) + 
-                        .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
-                    simulatedMat@x[simulatedMat@x > 1] <- 1
+                                    .sampleSparseMat(mat = mat[,idx2], sampleRatio = sampleRatio2[x])
+                    simulatedMat@x[simulatedMat@x > 0] <- 1
                     b <- data.frame(cellIDs=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))), 
                                     row.names=paste0("sim.",y,'.',seq(1:ncol(simulatedMat))))
-                    b$nSites   <- Matrix::colSums(simulatedMat)
+                    b$nSites <- Matrix::colSums(simulatedMat)
                     b$log10nSites <- log10(b$nSites)
                     colnames(simulatedMat) <- rownames(b)
                     rownames(simulatedMat) <- rownames(mat)
@@ -144,33 +141,47 @@ detectDoublets <- function(obj=NULL,
     }, mc.cores = threads)
     simMat <- do.call(rbind, simMat)
     simMat <- as.matrix(simMat)
-    simMat <- t(apply(simMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
     message(" - Created ", nrow(simMat), " synthetic doublets ...")
     
+    # project original
+    ogMat <- .projectSVD(obj,
+                         u=obj$SVD_model$u, 
+                         v=obj$SVD_model$v, 
+                         d=obj$SVD_model$d, 
+                         n.pcs=n.pcs,
+                         idx.keep=obj$SVD_model$keep_pcs,
+                         normModel=obj$norm_method)
+    
     # merge
-    allMat <- rbind(simMat, obj[[svd_slot]])
-    num.cells <- nrow(obj[[svd_slot]])
+    allMat <- rbind(simMat, ogMat)
+    #allMat <- t(apply(allMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
+    num.cells <- nrow(ogMat)
+    rm(ogMat)
     
     # run UMAP model
+    set.seed(1)
     proj.umap <- uwot::umap_transform(X = as.matrix(allMat), 
                                       model = obj$UMAP_model)
     rownames(proj.umap) <- rownames(allMat)
     colnames(proj.umap) <- c("umap1", "umap2")
     out <- list()
     
+    
     ##############################################################################
     # Compute Doublet Scores from SVD Embedding
     ##############################################################################
     message(" - Computing KNN doublets (SVD)...")
-    knnDoub <- .computeKNN(allMat[-seq_len(nrow(simMat)),], allMat[seq_len(nrow(simMat)),], k)
-        
+    knnDoub <- .computeKNN(allMat[-seq_len(nrow(simMat)),], allMat[seq_len(nrow(simMat)),], k=k)
+    knnDoub.svd <- knnDoub
+    
     #Compile KNN Sums
     countKnn <- rep(0, num.cells)
     names(countKnn) <- rownames(allMat[-seq_len(nrow(simMat)),])
     tabDoub <- table(as.vector(knnDoub))
     countKnn[as.integer(names(tabDoub))] <- countKnn[as.integer(names(tabDoub))] + tabDoub
     scaleTo <- 10000
-    scaleBy <- scaleTo / num.cells
+    scaleBy <- scaleTo / nrow(num.cells)
+    countknn.svd <- countKnn
     
     #P-Values
     pvalBinomDoub <- unlist(lapply(seq_along(countKnn), function(x){
@@ -191,11 +202,13 @@ detectDoublets <- function(obj=NULL,
     out$doubletEnrichSVD <- doubletEnrich
     out$doubletScoreSVD <- doubletScore
     
+    
     ##############################################################################
     # Compute Doublet Scores from UMAP Embedding
     ##############################################################################
     message(" - Computing KNN doublets (UMAP)...")
-    knnDoub <- .computeKNN(proj.umap[-seq_len(nrow(simMat)),], proj.umap[seq_len(nrow(simMat)),], k)
+    knnDoub <- .computeKNN(proj.umap[-seq_len(nrow(simMat)),], proj.umap[seq_len(nrow(simMat)),], k=k)
+    knnDoub.umap <- knnDoub
     
     #Compile KNN Sums
     countKnn <- rep(0, num.cells)
@@ -204,6 +217,7 @@ detectDoublets <- function(obj=NULL,
     countKnn[as.integer(names(tabDoub))] <- countKnn[as.integer(names(tabDoub))] + tabDoub
     scaleTo <- 10000
     scaleBy <- scaleTo / num.cells
+    countknn.umap <- countKnn
     
     #P-Values
     pvalBinomDoub <- unlist(lapply(seq_along(countKnn), function(x){
@@ -225,6 +239,10 @@ detectDoublets <- function(obj=NULL,
     out$doubletScoreUMAP <- doubletScore
     out$dSVD <- allMat
     out$dUMAP <- proj.umap
+    out$knnDoublet.umap <- knnDoub.umap
+    out$knnDoublet.svd <- knnDoub.svd
+    out$countknn.umap <- countknn.umap
+    out$countknn.svd <- countknn.svd
     obj$doublets <- out
     obj$meta$doubletscore <- obj$doublets$doubletEnrichUMAP[rownames(obj$meta)]
     return(obj)
@@ -238,9 +256,9 @@ detectDoublets <- function(obj=NULL,
 ###################################################################################################
 #' filterDoublets
 #'
-#' This function estimates doublet likelihood via synthetic doublet creation and enrichment 
-#' analysis. The underlying code is heavily adapted from ArchR described by Granja and Corces et al. 
-#' If you use detectDoublets in your analysis, please cite the original ArchR paper. 
+#' This function identifies potential doublets. A new column in the meta slot (d.type) denotes
+#' the doublet status. Doublets can also be directly filtered from the data set by setting 
+#' removeDoublets to TRUE. 
 #'
 #'
 #' @param obj Socrates object. For best results, use downstream of the function cleanCells prior to 
@@ -253,10 +271,11 @@ detectDoublets <- function(obj=NULL,
 #' @export
 #'
 filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", verbose=T, 
-                           umap_slotname="UMAP", svd_slotname="PCA"){
+                           umap_slotname="UMAP", svd_slotname="PCA", removeDoublets=F){
     
     # number of cells
     num.cells <- nrow(obj$meta)
+    ids <- rownames(obj$meta)
     
     # estimate # cells to remove
     rm.counts <- floor(filterRatio * ((num.cells^2) / 100000))
@@ -269,16 +288,19 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", verbose=
         obj$meta$doubletscore <- obj$doublets$doubletEnrichSVD[rownames(obj$meta)]
     }
     if(verbose){message("   * Doublet filtering * Input: cells = ", ncol(obj$counts), " | peaks = ", nrow(obj$counts))}
-    obj$meta <- obj$meta[order(obj$meta$doubletscore, decreasing=F),]
-    obj$meta <- head(obj$meta, n=keep.count)
-    obj$counts <- obj$counts[,rownames(obj$meta)]
-    obj$counts <- obj$count[Matrix::rowSums(obj$counts)>0,]
-    obj$counts <- obj$count[,Matrix::colSums(obj$counts)>0]
-    obj[[umap_slotname]] <- obj[[umap_slotname]][colnames(obj$counts),]
-    obj[[svd_slotname]] <- obj[[svd_slotname]][colnames(obj$counts),]
-    new.num.cells <- ncol(obj$counts)
-    ratio <- signif(((1-new.num.cells/num.cells)*100), digits=3)
-    if(verbose){message("   * Doublet filtering * Filtered (", ratio, "%) : cells = ", ncol(obj$counts), " | peaks = ", nrow(obj$counts))}
+    obj$meta <- obj$meta[order(obj$meta$doubletscore, decreasing=T),]
+    obj$meta$d.type <- c(rep("doublet", rm.counts), rep("singlet", keep.count))
+    obj$meta <- obj$meta[ids,]
+    if(removeDoublets){
+        obj$counts <- obj$counts[,rownames(obj$meta)]
+        obj$counts <- obj$count[Matrix::rowSums(obj$counts)>0,]
+        obj$counts <- obj$count[,Matrix::colSums(obj$counts)>0]
+        obj[[umap_slotname]] <- obj[[umap_slotname]][colnames(obj$counts),]
+        obj[[svd_slotname]] <- obj[[svd_slotname]][colnames(obj$counts),]
+        new.num.cells <- ncol(obj$counts)
+        ratio <- signif(((1-new.num.cells/num.cells)*100), digits=3)
+        if(verbose){message("   * Doublet filtering * Filtered (", ratio, "%) : cells = ", ncol(obj$counts), " | peaks = ", nrow(obj$counts))}
+    }
     return(obj)
 }
 

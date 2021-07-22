@@ -138,7 +138,8 @@ projectUMAP <- function(obj,
                         metric="cosine",
                         svd_slotName="PCA",
                         umap_slotName="UMAP",
-                        verbose=FALSE){
+                        verbose=FALSE,
+                        seed=1){
 
     # checks
     if(is.null(obj[[svd_slotName]])){
@@ -150,6 +151,7 @@ projectUMAP <- function(obj,
     if(verbose){message(" - non-linear dimensionality reduction with UMAP ...")}
 
     # run UMAP (uwot implementation)
+    set.seed(seed)
     umap.res <- uwot::umap(obj[[svd_slotName]],
                            verbose=verbose,
                            min_dist=m.dist,
