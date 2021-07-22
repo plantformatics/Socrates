@@ -252,7 +252,8 @@ detectDoublets <- function(obj=NULL,
 #' @rdname filterDoublets
 #' @export
 #'
-filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", verbose=T){
+filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", verbose=T, 
+                           umap_slotname="UMAP", svd_slotname="PCA"){
     
     # number of cells
     num.cells <- nrow(obj$meta)
@@ -273,6 +274,8 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", verbose=
     obj$counts <- obj$counts[,rownames(obj$meta)]
     obj$counts <- obj$count[Matrix::rowSums(obj$counts)>0,]
     obj$counts <- obj$count[,Matrix::colSums(obj$counts)>0]
+    obj[[umap_slotname]] <- obj[[umap_slotname]][colnames(obj$counts),]
+    obj[[svd_slotname]] <- obj[[svd_slotname]][colnames(obj$counts),]
     new.num.cells <- ncol(obj$counts)
     ratio <- signif(((1-new.num.cells/num.cells)*100), digits=3)
     if(verbose){message("   * Doublet filtering * Filtered (", ratio, "%) : cells = ", ncol(obj$counts), " | peaks = ", nrow(obj$counts))}
