@@ -4,20 +4,39 @@
 \alias{filterDoublets}
 \title{filterDoublets}
 \usage{
-filterDoublets(obj = NULL, filterRatio = 1.5, embedding = "UMAP", verbose = T)
+filterDoublets(
+  obj = NULL,
+  filterRatio = 1.5,
+  embedding = "UMAP",
+  libraryVar = "sampleID",
+  verbose = T,
+  umap_slotname = "UMAP",
+  svd_slotname = "PCA",
+  removeDoublets = F
+)
 }
 \arguments{
 \item{obj}{Socrates object. For best results, use downstream of the function cleanCells prior to
 normalization.}
 
-\item{filterRatio}{Numeric.}
+\item{filterRatio}{Numeric. Defaults to 1.5.}
 
-\item{embedding}{Character.}
+\item{embedding}{Character string. Which embedding to use for doublet estimation filtering. Defaults
+to "UMAP".}
 
-\item{verbose}{Boolean.}
+\item{libraryVar}{Character string. Meta data column containing library information. Defaults to
+"sampleID".}
+
+\item{verbose}{Boolean. Defaults to TRUE.}
+
+\item{umap_slotname}{Character string. Defaults to "UMAP".}
+
+\item{svd_slotname}{Character string. Defaults to "PCA".}
+
+\item{removeDoublets}{Boolean. Defaults to FALSE.}
 }
 \description{
-This function estimates doublet likelihood via synthetic doublet creation and enrichment
-analysis. The underlying code is heavily adapted from ArchR described by Granja and Corces et al.
-If you use detectDoublets in your analysis, please cite the original ArchR paper.
+This function identifies potential doublets. A new column in the meta slot (d.type) denotes
+the doublet status. Doublets can also be directly filtered from the data set by setting
+removeDoublets to TRUE.
 }

@@ -11,7 +11,8 @@ projectUMAP(
   metric = "cosine",
   svd_slotName = "PCA",
   umap_slotName = "UMAP",
-  verbose = FALSE
+  verbose = FALSE,
+  seed = 1
 )
 }
 \arguments{

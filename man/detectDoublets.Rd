@@ -10,9 +10,7 @@ detectDoublets(
   nSample = 1000,
   k = 10,
   n.pcs = 50,
-  seed = 1,
-  threads = 1,
-  svd_slot = "PCA"
+  threads = 1
 )
 }
 \arguments{
@@ -28,14 +26,7 @@ from the narbor package.}
 
 \item{n.pcs}{Numeric. Number of PCS/SVD components to retain when reducing dimensions.}
 
-\item{seed}{Numeric.}
-
 \item{threads}{Numeric. Number of threads to use for mclapply from the parallel package.}
-
-\item{normModel}{Character string. normalization model for embedding synthetic doublets. Options include
-'regModel', 'regModel2', 'logisticModel', and 'tfidf'. TF-IDF is the default due to its quicker run time.
-But the other models are also available if the user wish to maintain a consistent normalization scheme
-as the intended analysis.}
 }
 \description{
 This function estimates doublet likelihood via synthetic doublet creation and enrichment

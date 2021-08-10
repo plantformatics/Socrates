@@ -8,7 +8,7 @@ cleanData(
   obj,
   preclusterID = NULL,
   min.p = 0.01,
-  min.t = 0.001,
+  min.t = 0.01,
   min.c = 100,
   max.t = 0.005,
   min.cells.precluster = 10,
