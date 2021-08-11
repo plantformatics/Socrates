@@ -281,10 +281,17 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryV
     
     # split by library/replicate
     o.ids <- rownames(obj$meta)
+    if(! libraryVar %in% colnames(obj$meta) & !is.null(libraryVar)){
+        message(" !! The parameter `libraryVar`: ", libraryVar, ", does not exist as a column in the meta data slot ")
+        stop(" - please make sure that the parameter `libraryVar` is correctly set or is set to NULL for single-library objects ...")
+    }else if(is.null(libraryVar)){
+        libraryVar <- "temp"
+        obj$meta[,libraryVar] <- 1
+    }
     obj$meta[,libraryVar] <- as.character(obj$meta[,libraryVar])
     libs <- unique(as.character(obj$meta[,libraryVar]))
     
-    # iterate over each library/replciate
+    # iterate over each library/replicate
     outs <- lapply(libs, function(z){
         
         # subset by library/replicate
