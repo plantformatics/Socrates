@@ -278,17 +278,18 @@ detectDoublets <- function(obj=NULL,
 #' @rdname filterDoublets
 #' @export
 #'
-filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryVar="sampleID",
+filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryVar=NULL,
                            verbose=T, umap_slotname="UMAP", svd_slotname="PCA", removeDoublets=F){
     
     # split by library/replicate
     o.ids <- rownames(obj$meta)
     if(is.null(libraryVar)){
+        message(" - libraryVar set to NULL: if there are more than one library in the input object, please specify the meta column ID containing library/replicate information.")
         libraryVar <- "temp"
         obj$meta[,libraryVar] <- 1
     }else if(! libraryVar %in% colnames(obj$meta) & !is.null(libraryVar)){
-        message(" !! The parameter `libraryVar`: ", libraryVar, ", does not exist as a column in the meta data slot ")
-        stop(" - please make sure that the parameter `libraryVar` is correctly set or is set to NULL for single-library objects ...")
+        message(" - The parameter `libraryVar`: ", libraryVar, ", does not exist as a column in the meta data slot ")
+        stop(" - Error: please make sure that the parameter `libraryVar` is correctly set or is set to NULL for single-library objects ...")
     }
     obj$meta[,libraryVar] <- as.character(obj$meta[,libraryVar])
     libs <- unique(as.character(obj$meta[,libraryVar]))
