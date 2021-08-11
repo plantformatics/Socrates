@@ -267,7 +267,9 @@ detectDoublets <- function(obj=NULL,
 #' @param embedding Character string. Which embedding to use for doublet estimation filtering. Defaults
 #' to "UMAP".
 #' @param libraryVar Character string. Meta data column containing library information. Defaults to
-#' "sampleID".
+#' NULL, which is specifically for single library/replicate objects. Users with multiple libraries/replicates
+#' in the object must set the libraryVar parameter to the column name specifying each cells library ID. 
+#' The default column name used by mergeSocratesRDS is "sampleID". 
 #' @param verbose Boolean. Defaults to TRUE.
 #' @param umap_slotname Character string. Defaults to "UMAP".
 #' @param svd_slotname Character string. Defaults to "PCA".
@@ -333,6 +335,11 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryV
         
     }else{
         obj$meta <- outs[o.ids,]
+    }
+    
+    # remove temp column if necessary
+    if(is.null(libraryVar)){
+        obj$meta$temp <- NULL
     }
     
     # return object

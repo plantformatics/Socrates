@@ -25,7 +25,9 @@ normalization.}
 to "UMAP".}
 
 \item{libraryVar}{Character string. Meta data column containing library information. Defaults to
-"sampleID".}
+NULL, which is specifically for single library/replicate objects. Users with multiple libraries/replicates
+in the object must set the libraryVar parameter to the column name specifying each cells library ID.
+The default column name used by mergeSocratesRDS is "sampleID".}
 
 \item{verbose}{Boolean. Defaults to TRUE.}
 
