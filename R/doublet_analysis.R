@@ -329,6 +329,7 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryV
     # filter doublets
     if(removeDoublets){
         if(verbose){message("   * Doublet filtering * Input: cells = ", ncol(obj$counts), " | peaks = ", nrow(obj$counts))}
+        num.cells <- nrow(outs)
         obj$meta <- subset(outs, outs$d.type == "singlet")
         obj$counts <- obj$counts[,rownames(obj$meta)]
         obj$counts <- obj$count[Matrix::rowSums(obj$counts)>0,]
