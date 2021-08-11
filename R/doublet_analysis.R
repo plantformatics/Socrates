@@ -295,7 +295,7 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryV
     outs <- lapply(libs, function(z){
         
         # subset by library/replicate
-        obj.lib <- subset(obj$meta, obj$meta[,libraryVar==z])
+        obj.lib <- subset(obj$meta, obj$meta[,libraryVar]==z)
         num.cells <- nrow(obj.lib)
         ids <- rownames(obj.lib)
         
