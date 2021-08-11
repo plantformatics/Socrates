@@ -8,7 +8,7 @@ filterDoublets(
   obj = NULL,
   filterRatio = 1.5,
   embedding = "UMAP",
-  libraryVar = "sampleID",
+  libraryVar = NULL,
   verbose = T,
   umap_slotname = "UMAP",
   svd_slotname = "PCA",
