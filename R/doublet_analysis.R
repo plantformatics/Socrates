@@ -283,6 +283,9 @@ filterDoublets <- function(obj=NULL, filterRatio=1.5, embedding="UMAP", libraryV
     
     # split by library/replicate
     o.ids <- rownames(obj$meta)
+    if(verbose){
+        message(" - libraryVar: ", libraryVar)
+    }
     if(is.null(libraryVar)){
         message(" - libraryVar set to NULL: if there are more than one library in the input object, please specify the meta column ID containing library/replicate information.")
         libraryVar <- "temp"
