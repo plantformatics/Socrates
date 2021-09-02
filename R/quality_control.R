@@ -404,19 +404,19 @@ findCells <- function(obj,
                       org.filter.thresh=0.8,
                       filt.tss=T,
                       tss.min.freq=0.2,
-                      tss.z.thresh=3,
+                      tss.z.thresh=2,
                       filt.frip=T,
-                      frip.min.freq=0.1,
+                      frip.min.freq=0.2,
                       frip.z.thresh=2,
                       doplot=F,
                       prefix=NULL){
-
+    
     # filter functions
     .filterTSS <- function(obj, min.freq=0.2, z.thresh=3, doplot=F, main=""){
-
+        
         # get meta
         x <- subset(obj$meta.v1, obj$meta.v1$total > 0)
-
+        
         # get tss props
         x$prop <- x$tss/x$total
         x$prop[is.na(x$prop)] <- 0
@@ -433,10 +433,10 @@ findCells <- function(obj,
         }
         x <- x[order(x$total, decreasing=T),]
         n.cells <- nrow(subset(x, x$tss/x$total >= thresh))
-
+        
         # if doplot is true
         if(doplot){
-
+            
             # get density
             den <- kde2d(log10(x$total), x$prop,
                          n=300, h=c(0.2, 0.05),
@@ -449,24 +449,24 @@ findCells <- function(obj,
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
             box()
         }
-
+        
         # filter
         x$prop <- NULL
         x$zscore <- NULL
         out <- subset(x, x$tss/x$total >= thresh)
-
+        
         # rename
         obj$meta.v2 <- out
-
+        
         # return
         return(obj)
-
+        
     }
     .filterFRiP <- function(obj, min.freq=0.1, z.thresh=2, doplot=F, main=""){
-
+        
         # get meta
         x <- subset(obj$meta.v2, obj$meta.v2$total > 0)
-
+        
         # get FRiP props
         x$prop <- x$acr/x$total
         x$prop[is.na(x$prop)] <- 0
@@ -483,10 +483,10 @@ findCells <- function(obj,
         }
         x <- x[order(x$total, decreasing=T),]
         n.cells <- nrow(subset(x, x$acr/x$total >= thresh))
-
+        
         # if doplot is true
         if(doplot){
-
+            
             # get density
             den <- kde2d(log10(x$total), x$prop,
                          n=300, h=c(0.2, 0.05),
@@ -499,32 +499,32 @@ findCells <- function(obj,
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
             box()
         }
-
+        
         # filter
         x$prop <- NULL
         x$zscore <- NULL
         out <- subset(x, x$acr/x$total >= thresh)
-
+        
         # rename
         obj$meta.v3 <- out
-
+        
         # return
         return(obj)
     }
     .filterOrganelle <- function(obj, cell_threshold=0.8, remove_cells=FALSE, doplot=F, main=""){
-
+        
         x <- obj$meta.v1
         x$ptmt.ratio <- x$ptmt/x$total
-
+        
         if (remove_cells == TRUE) {
             message("... Filtering Cells based of Oragnelle Reads")
             out_meta <- subset(x, x$ptmt.ratio <= cell_threshold)
-
+            
         } else {
             message("... Not Filtering Cells on Organelle Ratio")
             out_meta <- x
         }
-
+        
         n.cells = nrow(out_meta)
         if(doplot){
             hist(x$ptmt.ratio, xlim=c(0,1),
@@ -533,15 +533,15 @@ findCells <- function(obj,
                  main=main)
             abline(v=cell_threshold, col="red", lty=2, lwd=2)
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
-
+            
         }
-
+        
         #write back
         obj$meta.v1 <- out_meta
-
+        
         return(obj)
     }
-
+    
     # get meta data
     x <- obj$meta
     # order DF by total Tn5 sites
@@ -550,7 +550,7 @@ findCells <- function(obj,
     depth <- log10(x$total+1)
     df <- data.frame(rank=rank, depth=depth)
     fit <- smooth.spline(rank, depth, spar=0.1)
-
+    
     # find local minima slope
     X <- data.frame(t=seq(min(rank),max(rank),length=nrow(df)))
     Y <- predict(fit, newdata=X, deriv=1)
@@ -559,31 +559,37 @@ findCells <- function(obj,
     knee <- xvals[which.min(yvals[min.cells:max.cells])]
     cells <- which.min(yvals[min.cells:max.cells])
     reads <- (10^(min(df[1:cells,]$depth))) - 1
-
+    
     # ensure reads > min.tn5
     if(reads < min.tn5){
         reads <- min.tn5
         cells <- nrow(subset(df, df$depth>log10(reads)))
+        if(cells > max.cells){
+            cells <- max.cells
+        }
         knee <- log10(cells)
     }
-
+    
     # if override spline fitting
     if(!is.null(set.tn5.cutoff)){
         reads <- set.tn5.cutoff
         cells <- nrow(subset(df, df$depth>log10(reads)))
+        if(cells > max.cells){
+            cells <- max.cells
+        }
         knee <- log10(cells)
     }
-
+    
     # if number of cells less than threshold
     if(cells < min.cells){
         cells <- min.cells
         knee <- log10(cells)
     }
     reads <- 10^(depth[cells])
-
-
+    
+    
     if(filt.org == T){plot_num = 4} else {plot_num = 3}
-
+    
     # plot
     if(doplot){
         if(!is.null(prefix)){pdf(paste0(prefix,".QC_FIGURES.pdf"), width=12, height=4)}
@@ -599,16 +605,16 @@ findCells <- function(obj,
         abline(h=log10(reads), col="red", lty=2)
         legend("bottomleft", legend=paste("# cells=",cells,", # reads=",reads,sep=""), fill=NA, col=NA, border=NA)
     }
-
+    
     # append meta
     obj$meta.v1 <- head(x, n=cells)
-
+    
     message("Making Dotplot")
     # filter by Organelle
     if(filt.org == T){
         obj <- .filterOrganelle(obj, remove_cells=filt.org, cell_threshold = org.filter.thresh, doplot=doplot, main="Organelle Ratio")
     }
-
+    
     # filter by TSS
     if(filt.tss){
         obj <- .filterTSS(obj, min.freq=tss.min.freq, z.thresh=tss.z.thresh, doplot=doplot, main="% TSS")
@@ -625,8 +631,8 @@ findCells <- function(obj,
         obj$meta.v2 <- obj$meta.v1
         obj$meta.v3 <- obj$meta.v2
     }
-
-
+    
+    
     if(doplot){
         if(!is.null(prefix)){dev.off()}
     }
