@@ -36,4 +36,5 @@ Depends:
     scales (>= 1.1.0),
     RColorBrewer (>= 1.1.2),
     nabor (>= 0.5.0),
-    CMF (>= 1.0.2)
+    CMF (>= 1.0.2),
+    RcppML (>= 1.0.6)
