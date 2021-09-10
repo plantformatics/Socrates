@@ -14,9 +14,9 @@ findCells(
   org.filter.thresh = 0.8,
   filt.tss = T,
   tss.min.freq = 0.2,
-  tss.z.thresh = 3,
+  tss.z.thresh = 2,
   filt.frip = T,
-  frip.min.freq = 0.1,
+  frip.min.freq = 0.2,
   frip.z.thresh = 2,
   doplot = F,
   prefix = NULL

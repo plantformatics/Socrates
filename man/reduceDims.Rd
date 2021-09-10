@@ -6,18 +6,25 @@
 \usage{
 reduceDims(
   obj,
+  method = "SVD",
   n.pcs = 50,
   scaleVar = T,
+  num.var = 5000,
   cor.max = 0.75,
-  doL2 = NULL,
-  stdLSI = 1,
+  doL2 = F,
+  doL1 = F,
+  doSTD = T,
   residuals_slotName = "residuals",
   svd_slotName = "PCA",
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{
 \item{obj}{list, object containing "pearson_residuals" output by the function regModel.}
+
+\item{method}{character, string denoting dimension reduction method. Can be one of "SVD" or
+"NMF". Defaults to SVD.}
 
 \item{n.pcs}{numeric, number of singular values to calculate.}
 
@@ -25,12 +32,9 @@ reduceDims(
 accessible peaks) and singular value to keep. Singular values with correlations greater than
 cor.max are removed. Ranges from 0 to 1. Default set to 0.75.}
 
-\item{doL2}{numeric, whether to L2 normalize barcodes (doL2=1), L2 normalize PCs (doL2=2),
-or no L2 normalization (NULL or FALSE).}
+\item{doL2}{logical, whether or not to L2 normalize barcodes.}
 
-\item{stdLSI}{numeric, whether to standarize barcodes (stdLSI=1), standardize PCs (stdLSI=2),
-or no SVD standarization (NULL or FALSE). Defaults to 1 (standardize components for each
-barcode).}
+\item{doL1}{logical, whether or not to L1 normalize barcodes}
 
 \item{residuals_slotName}{character, character string of the desired residual slotName. Defaults
 to "residuals".}
@@ -40,7 +44,15 @@ object. Defaults to "PCA".}
 
 \item{verbose}{logical. Defaults to FALSE.}
 
-\item{scaleVars}{logical, whether or not to scale PCs by variance explained. Default to TRUE.}
+\item{...}{Additional arguments to be passed to RcppML::nmf}
+
+\item{scaleVars}{logical, whether or not to scale PCs by variance explained (or to scale
+NMF components by scale factors). Default to TRUE.}
+
+\item{num.vars}{number of highly variable ACRs/bins to use for dimensionality reduction.
+Defaults to 5000. Set to NULL to use all ACRs/bins.}
+
+\item{stdLSI}{logical, whether or not to standardize barcodes.}
 }
 \description{
 Run SVD on Pearson residuals using IRLBA.
