@@ -6,102 +6,162 @@
 #' Run SVD on Pearson residuals using IRLBA.
 #'
 #' @importFrom irlba irlba
+#' @importFrom RcppML nmf
 #'
 #' @param obj list, object containing "pearson_residuals" output by the function regModel.
+#' @param method character, string denoting dimension reduction method. Can be one of "SVD" or
+#' "NMF". Defaults to SVD.
 #' @param n.pcs numeric, number of singular values to calculate.
-#' @param scaleVars logical, whether or not to scale PCs by variance explained. Default to TRUE.
+#' @param scaleVars logical, whether or not to scale PCs by variance explained (or to scale
+#' NMF components by scale factors). Default to TRUE.
+#' @param num.vars number of highly variable ACRs/bins to use for dimensionality reduction.
+#' Defaults to 5000. Set to NULL to use all ACRs/bins.
 #' @param cor.max float, maximum spearman correlation between log10nSites (log10 number of
 #' accessible peaks) and singular value to keep. Singular values with correlations greater than
 #' cor.max are removed. Ranges from 0 to 1. Default set to 0.75.
-#' @param doL2 numeric, whether to L2 normalize barcodes (doL2=1), L2 normalize PCs (doL2=2),
-#' or no L2 normalization (NULL or FALSE).
-#' @param stdLSI numeric, whether to standarize barcodes (stdLSI=1), standardize PCs (stdLSI=2),
-#' or no SVD standarization (NULL or FALSE). Defaults to 1 (standardize components for each
-#' barcode).
+#' @param doL2 logical, whether or not to L2 normalize barcodes.
+#' @param doL1 logical, whether or not to L1 normalize barcodes
+#' @param stdLSI logical, whether or not to standardize barcodes.
 #' @param residuals_slotName character, character string of the desired residual slotName. Defaults
 #' to "residuals".
 #' @param svd_slotName character, character string for naming the SVD output in the returned
 #' object. Defaults to "PCA".
 #' @param verbose logical. Defaults to FALSE.
+#' @param ... Additional arguments to be passed to RcppML::nmf
 #'
 #' @rdname reduceDims
 #' @export
 reduceDims <- function(obj,
+                       method="SVD",
                        n.pcs=50,
                        scaleVar=T,
+                       num.var=5000,
                        cor.max=0.75,
-                       doL2=NULL,
-                       stdLSI=1,
+                       doL2=F,
+                       doL1=F,
+                       doSTD=T,
                        residuals_slotName="residuals",
                        svd_slotName="PCA",
-                       verbose=FALSE){
-
-    # verbose
-    if(verbose){message(" - reduce dimensions with SVD ... ")}
-
+                       verbose=FALSE,
+                       ...){
+    
+    # sub functions
+    l2norm <- function(x){x/sqrt(sum(x^2))}
+    l1norm <- function(x){x/(sum(x))}
+    RowVar <- function(x){
+        spm <- t(x)
+        stopifnot( methods::is( spm, "dgCMatrix" ) )
+        ans <- sapply( base::seq.int(spm@Dim[2]), function(j) {
+            if( spm@p[j+1] == spm@p[j] ) { return(0) } # all entries are 0: var is 0
+            mean <- base::sum( spm@x[ (spm@p[j]+1):spm@p[j+1] ] ) / spm@Dim[1]
+            sum( ( spm@x[ (spm@p[j]+1):spm@p[j+1] ] - mean )^2 ) +
+                mean^2 * ( spm@Dim[1] - ( spm@p[j+1] - spm@p[j] ) ) } ) / ( spm@Dim[1] - 1 )
+        names(ans) <- spm@Dimnames[[2]]
+        ans
+    }
+    
     # check if slotName exists
     if(is.null(obj[[residuals_slotName]])){
         message(" ERROR: useSlot - ", residuals_slotName, " - is missing ...")
         stop("exiting")
     }
-
-    # run
-    pcs <- irlba(t(obj[[residuals_slotName]]), nv=n.pcs)
-    pc <- pcs$u
-
-    # scale by % variance
-    if(scaleVar){
-        pc <- pc %*% diag(pcs$d)
+    
+    # choose method
+    if(method=="SVD"){
+        
+        # verbose
+        if(verbose){message(" - reduce dimensions with SVD ... ")}
+        
+        # if use subset
+        if(!is.null(num.var)){
+            row.var <- RowVar(obj[[residuals_slotName]])
+            row.var <- row.var[order(row.var, decreasing=T)]
+            topSites <- names(head(row.var, n=num.var))
+            
+            # input matrix
+            M <- obj$residuals[topSites,]
+            if(obj$norm_method != "tfidf"){
+                M <- t(apply(M, 1, function(x){
+                    x - min(x, na.rm=T)
+                }))
+            }
+            M <- Diagonal(x=1/row.var[topSites]) %*% M
+            M <- M[Matrix::rowSums(M) > 0,]
+        }else{
+            M <- obj[[residuals_slotName]]
+        }
+        
+        # run
+        pcs <- irlba(t(M), nv=n.pcs)
+        pc <- pcs$u
+        
+        # scale by % variance
+        if(scaleVar){
+            pc <- pc %*% diag(pcs$d)
+        }
+        pc[is.na(pc)] <- 0
+    }else if(method=="NMF"){
+        
+        # if use subset
+        if(verbose){message(" - running NMF...")}
+        if(!is.null(num.var)){
+            row.var <- RowVar(obj[[residuals_slotName]])
+            row.var <- row.var[order(row.var, decreasing=T)]
+            topSites <- names(head(row.var, n=num.var))
+            
+            # input matrix
+            M <- obj$residuals[topSites,]
+            if(obj$norm_method != "tfidf"){
+                M <- t(apply(M, 1, function(x){
+                    x - min(x, na.rm=T)
+                }))
+            }
+            M <- Diagonal(x=1/row.var[topSites]) %*% M 
+            
+        }else{
+            M <- obj[[residuals_slotName]]
+        }
+        
+        # run NMF
+        pcs <- RcppML::nmf(M, n.pcs, verbose=verbose, ...)
+        pcs$v <- pcs$h
+        pcs$u <- pcs$w
+        if(scaleVar){
+            pc <- t(pcs$h) %*% Diagonal(x=1/pcs$d)
+        }else{
+            pc <- t(pcs$h)
+        }
+        pc[is.na(pc)] <- 0
+        
     }
-
+    
     # add colnames
     rownames(pc) <- colnames(obj[[residuals_slotName]])
     colnames(pc) <- paste0("PC_", seq(1:ncol(pc)))
-
+    
+    # standardize, L2, or L1 reduced dimensions per cell
+    if(verbose){message(" - normalizing reduced dimensions...")}
+    if(doL2){
+        pc <- t(apply(pc, 1, l2norm))
+    }else if(doL1){
+        pc <- t(apply(pc, 1, l1norm))
+    }else if(doSTD){
+        pc <- t(apply(pc, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
+    }
+    pc[is.na(pc)] <- 0
+    
     # remove PCs with correlation to read-depth
+    if(verbose){message(" - removing components correlated to read depth...")}
     if(cor.max < 1){
         depth <- Matrix::colSums(obj$counts[,rownames(pc)])
         cors <- apply(pc, 2, function(u) cor(u,depth,method="spearman"))
-        idx.keep <- abs(cors) < cor.max
+        cors <- abs(cors)
+        idx.keep <- cors < cor.max
         pc <- pc[,idx.keep]
+    }else{
+        idx.keep <- seq(1:ncol(pc))
     }
-
-    # convert l2 norm
-    if(!is.null(doL2)){
-        if(doL2 != FALSE){
-
-            # verbose
-            if(verbose){message(" - L2 norm of reduced dimensions ... ")}
-
-            if(doL2==1){
-                pc <- t(apply(pc, 1, function(x) x/(sqrt(sum(x^2)))))
-            }else if(doL2==2){
-                pc <- apply(pc, 2, function(x) x/(sqrt(sum(x^2))))
-            }
-
-            if(cor.max < 1){
-                depth <- Matrix::colSums(obj$counts[,rownames(pc)])
-                cors <- apply(pc, 2, function(u) cor(u,depth,method="spearman"))
-                pc <- pc[,abs(cors) < cor.max]
-            }
-        }
-    }
-
-    # standarize reduced dimensions per cell
-    if(!is.null(stdLSI)){
-        if(stdLSI != FALSE){
-
-            # verbose
-            if(stdLSI==1){
-                if(verbose){message(" - standardizing reduced dimensions per cell ... ")}
-                pc <- t(apply(pc, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
-            }else if(stdLSI==2){
-                if(verbose){message(" - standardizing reduced dimensions by components ... ")}
-                pc <- apply(pc, 2, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)})
-            }
-        }
-    }
-
+    
     # return
     obj[[svd_slotName]] <- pc
     obj$SVD_model <- list()
@@ -110,7 +170,8 @@ reduceDims <- function(obj,
     obj$SVD_model$u <- pcs$u
     obj$SVD_model$keep_pcs <- idx.keep
     return(obj)
-
+    
+    
 }
 
 
