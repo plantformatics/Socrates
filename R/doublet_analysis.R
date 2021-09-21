@@ -18,6 +18,10 @@
 #' from the narbor package.
 #' @param n.pcs Numeric. Number of PCS/SVD components to retain when reducing dimensions.
 #' @param threads Numeric. Number of threads to use for mclapply from the parallel package.
+#' @param rdMethod Character. Either "SVD" or "NMF" for dimensionality reduction used previously. Defaults
+#' to NULL, using the method specified in obj$rdMethod. 
+#' @param svd_slotName Character. Slot name containing reduced dimensions from reduceDims function.
+#' Default is PCA. 
 #'
 #' @rdname detectDoublets
 #' @export
@@ -27,11 +31,17 @@ detectDoublets <- function(obj=NULL,
                            nSample=1000,
                            k=10,
                            n.pcs=50,
-                           threads=1){
+                           threads=1,
+                           rdMethod=NULL,
+                           svd_slotName="PCA"){
     
     # pre-checks
     if(is.null(obj)){
         stop("! Socrates object is required ...")
+    }
+    model_name <- paste0(svd_slotName, "_model")
+    if(is.null(obj[[model_name]])){
+        stop(" slot: ", model_name, " does not exist. Please ensure that svd_slotName exists before proceeding...")
     }
     
     # hidden functions
@@ -67,7 +77,9 @@ detectDoublets <- function(obj=NULL,
                             d=NULL,
                             n.pcs=NULL,
                             idx.keep=NULL,
-                            normModel="regModel"){
+                            normModel="regModel",
+                            rdMethod="SVD",
+                            sites=rownames(sobj$residuals)){
         
         # run normalization
         if(normModel == 'regModel'){
@@ -81,7 +93,11 @@ detectDoublets <- function(obj=NULL,
         }
         
         # get V matrix
-        V <- Matrix::t(sobj$residuals) %*% v %*% Matrix::diag(1/d)
+        #if(rdMethod == "SVD"){
+        V <- Matrix::t(sobj$residuals[sites,]) %*% v %*% Matrix::diag(1/d)
+        #}else if(rdMethod == "NMF"){
+        #    V <- Matrix::t(sobj$residuals) %*% t(v) %*% Matrix::diag(1/d)
+        #}
         
         # diagonal
         if(n.pcs > ncol(u)){
@@ -129,12 +145,14 @@ detectDoublets <- function(obj=NULL,
             rownames(simulatedMat) <- rownames(mat)
             simobj <- list(counts=simulatedMat, meta=b)
             simSVD <- .projectSVD(simobj,
-                                  u=obj$SVD_model$u,
-                                  v=obj$SVD_model$v,
-                                  d=obj$SVD_model$d,
+                                  u=obj[[model_name]]$u,
+                                  v=obj[[model_name]]$v,
+                                  d=obj[[model_name]]$d,
                                   n.pcs=n.pcs,
-                                  idx.keep=obj$SVD_model$keep_pcs,
-                                  normModel=obj$norm_method)
+                                  idx.keep=obj[[model_name]]$keep_pcs,
+                                  normModel=obj$norm_method,
+                                  rdMethod=ifelse(is.null(rdMethod), obj$rdMethod, rdMethod),
+                                  sites=obj$hv_sites)
             return(simSVD)
         })
         outs <- do.call(rbind, outs)
@@ -144,21 +162,26 @@ detectDoublets <- function(obj=NULL,
     message(" - Created ", nrow(simMat), " synthetic doublets ...")
     
     # project original
+    message(" - Creating original projection ...")
     ogMat <- .projectSVD(obj,
-                         u=obj$SVD_model$u,
-                         v=obj$SVD_model$v,
-                         d=obj$SVD_model$d,
+                         u=obj[[model_name]]$u,
+                         v=obj[[model_name]]$v,
+                         d=obj[[model_name]]$d,
                          n.pcs=n.pcs,
-                         idx.keep=obj$SVD_model$keep_pcs,
-                         normModel=obj$norm_method)
+                         idx.keep=obj[[model_name]]$keep_pcs,
+                         normModel=obj$norm_method,
+                         rdMethod=ifelse(is.null(rdMethod), obj$rdMethod, rdMethod),
+                         sites=obj$hv_sites)
     
     # merge
+    message(" - Merging synthetic and original cells ...")
     allMat <- rbind(simMat, ogMat)
     #allMat <- t(apply(allMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
     num.cells <- nrow(ogMat)
     rm(ogMat)
     
     # run UMAP model
+    message(" - Projecting to UMAP ...")
     set.seed(1)
     proj.umap <- uwot::umap_transform(X = as.matrix(allMat),
                                       model = obj$UMAP_model)

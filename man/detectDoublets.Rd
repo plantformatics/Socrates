@@ -10,7 +10,9 @@ detectDoublets(
   nSample = 1000,
   k = 10,
   n.pcs = 50,
-  threads = 1
+  threads = 1,
+  rdMethod = NULL,
+  svd_slotName = "PCA"
 )
 }
 \arguments{
@@ -27,6 +29,12 @@ from the narbor package.}
 \item{n.pcs}{Numeric. Number of PCS/SVD components to retain when reducing dimensions.}
 
 \item{threads}{Numeric. Number of threads to use for mclapply from the parallel package.}
+
+\item{rdMethod}{Character. Either "SVD" or "NMF" for dimensionality reduction used previously. Defaults
+to NULL, using the method specified in obj$rdMethod.}
+
+\item{svd_slotName}{Character. Slot name containing reduced dimensions from reduceDims function.
+Default is PCA.}
 }
 \description{
 This function estimates doublet likelihood via synthetic doublet creation and enrichment

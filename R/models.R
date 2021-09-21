@@ -293,7 +293,7 @@ regModel <- function(obj,
                      alpha=0.5,
                      center.resid=F,
                      scale.resid=F,
-                     make.sparse=T,
+                     make.sparse=F,
                      verbose=FALSE,
                      slotName="residuals"){
 
@@ -508,9 +508,13 @@ regModel <- function(obj,
     #                     j=as.numeric(res$j),
     #                     x=as.numeric(res$x),
     #                     dimnames=list(levels(res$i), levels(res$j)))
-    res[res < 0] <- 0
-    res <- Matrix(res, sparse=T)
-    res <- drop0(res, tol=0)
+    if(make.sparse){
+        res[res < 0] <- 0
+        res <- Matrix(res, sparse=T)
+        res <- drop0(res, tol=0)
+    }else{
+        res <- Matrix(res, sparse=T)
+    }
 
     # remove na
     res[is.na(res)] <- 0
@@ -519,6 +523,19 @@ regModel <- function(obj,
     # report intial residuals
     res.range <- range(res)
     if(verbose){message("   * residual range: ",res.range[1], " - ", res.range[2])}
+    
+    # standardize
+    if(scale.resid){
+        .stdize <- function(z){
+            (z-mean(z, na.rm=T))/sd(z, na.rm=T)
+        }
+        res <- t(apply(res, 1, .stdize))
+    }else if(center.resid){
+        .center <- function(z){
+            z-mean(z, na.rm=T)
+        }
+        res <- t(apply(res, 1, .center))
+    }
 
 
     ###############################################################################################

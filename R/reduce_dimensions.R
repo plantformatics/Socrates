@@ -69,6 +69,9 @@ reduceDims <- function(obj,
     # choose method
     if(method=="SVD"){
         
+        # set method  used
+        obj$rdMethod <- "SVD"
+        
         # verbose
         if(verbose){message(" - reduce dimensions with SVD ... ")}
         
@@ -85,7 +88,6 @@ reduceDims <- function(obj,
                     x - min(x, na.rm=T)
                 }))
             }
-            M <- Diagonal(x=1/row.var[topSites]) %*% M
             M <- M[Matrix::rowSums(M) > 0,]
         }else{
             M <- obj[[residuals_slotName]]
@@ -102,6 +104,9 @@ reduceDims <- function(obj,
         pc[is.na(pc)] <- 0
     }else if(method=="NMF"){
         
+        # set method used
+        obj$rdMethod <- "NMF"
+        
         # if use subset
         if(verbose){message(" - running NMF...")}
         if(!is.null(num.var)){
@@ -116,7 +121,6 @@ reduceDims <- function(obj,
                     x - min(x, na.rm=T)
                 }))
             }
-            M <- Diagonal(x=1/row.var[topSites]) %*% M 
             
         }else{
             M <- obj[[residuals_slotName]]
@@ -124,8 +128,8 @@ reduceDims <- function(obj,
         
         # run NMF
         pcs <- RcppML::nmf(M, n.pcs, verbose=verbose, ...)
-        pcs$v <- pcs$h
-        pcs$u <- pcs$w
+        pcs$u <- t(pcs$h)
+        pcs$v <- pcs$w
         if(scaleVar){
             pc <- t(pcs$h) %*% Diagonal(x=1/pcs$d)
         }else{
@@ -164,11 +168,13 @@ reduceDims <- function(obj,
     
     # return
     obj[[svd_slotName]] <- pc
-    obj$SVD_model <- list()
-    obj$SVD_model$d <- pcs$d
-    obj$SVD_model$v <- pcs$v
-    obj$SVD_model$u <- pcs$u
-    obj$SVD_model$keep_pcs <- idx.keep
+    model_slot <- paste0(svd_slotName, "_model")
+    obj[[model_slot]] <- list()
+    obj[[model_slot]]$d <- pcs$d
+    obj[[model_slot]]$v <- pcs$v
+    obj[[model_slot]]$u <- pcs$u
+    obj[[model_slot]]$keep_pcs <- idx.keep
+    obj$hv_sites <- rownames(M)
     return(obj)
     
     
