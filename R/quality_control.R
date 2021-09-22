@@ -17,11 +17,13 @@
 #' @param ann Path to GFF file for estimating % reads mapping to TSSs. Required.
 #' @param sizes Path to chromosome sizes file for downstream processing. Required.
 #' @param verbose logical. Defaults to TRUE.
+#' @param is.fragment logical. Set to TRUE if the provided BED file is the fragment.csv output from
+#' cellranger-atac count. Defaults to FALSE. 
 #'
 #' @rdname loadBEDandGenomeData
 #' @export
 #'
-loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T){
+loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T, is.fragment=F){
 
     # load hidden pre-check function
     .preRunChecks <- function(bed, ann, sizes, verbose=T){
@@ -59,7 +61,12 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T)
 
 
     }
-
+    .convertFragment2BED <- function(csv){
+        
+        
+        
+    }
+    
     # run pre-checks
     .preRunChecks(bed, ann, sizes, verbose=verbose)
 
@@ -81,6 +88,18 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T)
         anntype <- "gff3"
     }
 
+    # check if input bed is a fragment file
+    if(is.fragment){
+        
+        if(verbose){message(" - converting fragment file to single-bp resolution Tn5 insertions sites ...")}
+        start.coordinates <- data.frame(V1=a$V1, V2=(a$V2), V3=(a$V2+1), V4=a$V4, V5="+")
+        end.coordinates <- data.frame(V1=a$V1, V2=(a$V3-1), V3=a$V2, V4=a$V4, V5="-")
+        all.coordinates <- rbind(start.coordinates, end.coordinates)
+        all.coordinates <- all.coordinates[order(all.coordinates$V1, all.coordiantes$V2, decreasing=F),]
+        a <- all.coordinates[!duplicated(all.coordinates),]
+        
+    }
+    
     # load Gff
     gff <- suppressWarnings(suppressMessages(makeTxDbFromGFF(as.character(ann), format=anntype, dbxrefTag=attribute)))
     chrom <- read.table(as.character(sizes))
