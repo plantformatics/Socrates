@@ -14,6 +14,7 @@ reduceDims(
   doL2 = F,
   doL1 = F,
   doSTD = T,
+  refit_residuals = F,
   residuals_slotName = "residuals",
   svd_slotName = "PCA",
   verbose = FALSE,
@@ -35,6 +36,10 @@ cor.max are removed. Ranges from 0 to 1. Default set to 0.75.}
 \item{doL2}{logical, whether or not to L2 normalize barcodes.}
 
 \item{doL1}{logical, whether or not to L1 normalize barcodes}
+
+\item{refit_residuals}{logical, whether or not to use quasibinomial logistic regression residuals
+for num.vars features. Only applicable when num.vars < nrow(obj$counts) and when the normalization
+was performed with tfidf. Defaults to FALSE.}
 
 \item{residuals_slotName}{character, character string of the desired residual slotName. Defaults
 to "residuals".}

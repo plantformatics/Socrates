@@ -22,6 +22,9 @@
 #' @param doL2 logical, whether or not to L2 normalize barcodes.
 #' @param doL1 logical, whether or not to L1 normalize barcodes
 #' @param stdLSI logical, whether or not to standardize barcodes.
+#' @param refit_residuals logical, whether or not to use quasibinomial logistic regression residuals
+#' for num.vars features. Only applicable when num.vars < nrow(obj$counts) and when the normalization
+#' was performed with tfidf. Defaults to FALSE.
 #' @param residuals_slotName character, character string of the desired residual slotName. Defaults
 #' to "residuals".
 #' @param svd_slotName character, character string for naming the SVD output in the returned
@@ -40,6 +43,7 @@ reduceDims <- function(obj,
                        doL2=F,
                        doL1=F,
                        doSTD=T,
+                       refit_residuals=F,
                        residuals_slotName="residuals",
                        svd_slotName="PCA",
                        verbose=FALSE,
@@ -66,6 +70,32 @@ reduceDims <- function(obj,
         stop("exiting")
     }
     
+    # if use subset
+    if(!is.null(num.var)){
+        row.var <- RowVar(obj[[residuals_slotName]])
+        row.var <- row.var[order(row.var, decreasing=T)]
+        topSites <- names(head(row.var, n=num.var))
+        
+        # input matrix
+        if(refit_residuals & obj$norm_method =="tfidf"){
+            test.dat <- list(counts=obj$counts[topSites,], meta=obj$meta)
+            M <- regModel(test.dat, 
+                          subpeaks=nrow(test.dat$counts))$residuals
+            M <- t(apply(M, 1, function(x){x - min(x, na.rm=T)}))
+            M <- M[Matrix::rowSums(M) > 0,]
+        }else{
+            M <- obj$residuals[topSites,]
+            if(obj$norm_method != "tfidf"){
+                M <- t(apply(M, 1, function(x){
+                    x - min(x, na.rm=T)
+                }))
+            }
+            M <- M[Matrix::rowSums(M) > 0,]
+        }
+    }else{
+        M <- obj[[residuals_slotName]]
+    }
+    
     # choose method
     if(method=="SVD"){
         
@@ -74,24 +104,6 @@ reduceDims <- function(obj,
         
         # verbose
         if(verbose){message(" - reduce dimensions with SVD ... ")}
-        
-        # if use subset
-        if(!is.null(num.var)){
-            row.var <- RowVar(obj[[residuals_slotName]])
-            row.var <- row.var[order(row.var, decreasing=T)]
-            topSites <- names(head(row.var, n=num.var))
-            
-            # input matrix
-            M <- obj$residuals[topSites,]
-            if(obj$norm_method != "tfidf"){
-                M <- t(apply(M, 1, function(x){
-                    x - min(x, na.rm=T)
-                }))
-            }
-            M <- M[Matrix::rowSums(M) > 0,]
-        }else{
-            M <- obj[[residuals_slotName]]
-        }
         
         # run
         pcs <- irlba(t(M), nv=n.pcs)
@@ -102,6 +114,7 @@ reduceDims <- function(obj,
             pc <- pc %*% diag(pcs$d)
         }
         pc[is.na(pc)] <- 0
+        
     }else if(method=="NMF"){
         
         # set method used
@@ -109,22 +122,6 @@ reduceDims <- function(obj,
         
         # if use subset
         if(verbose){message(" - running NMF...")}
-        if(!is.null(num.var)){
-            row.var <- RowVar(obj[[residuals_slotName]])
-            row.var <- row.var[order(row.var, decreasing=T)]
-            topSites <- names(head(row.var, n=num.var))
-            
-            # input matrix
-            M <- obj$residuals[topSites,]
-            if(obj$norm_method != "tfidf"){
-                M <- t(apply(M, 1, function(x){
-                    x - min(x, na.rm=T)
-                }))
-            }
-            
-        }else{
-            M <- obj[[residuals_slotName]]
-        }
         
         # run NMF
         pcs <- RcppML::nmf(M, n.pcs, verbose=verbose, ...)

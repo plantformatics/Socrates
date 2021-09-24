@@ -4,7 +4,14 @@
 \alias{loadBEDandGenomeData}
 \title{loadBEDandGenomeData}
 \usage{
-loadBEDandGenomeData(bed, ann, sizes, attribute = "Parent", verbose = T)
+loadBEDandGenomeData(
+  bed,
+  ann,
+  sizes,
+  attribute = "Parent",
+  verbose = T,
+  is.fragment = F
+)
 }
 \arguments{
 \item{bed}{Path to Tn5 integration site bed file with barcode information.
@@ -15,6 +22,9 @@ Required.}
 \item{sizes}{Path to chromosome sizes file for downstream processing. Required.}
 
 \item{verbose}{logical. Defaults to TRUE.}
+
+\item{is.fragment}{logical. Set to TRUE if the provided BED file is the fragment.csv output from
+cellranger-atac count. Defaults to FALSE.}
 }
 \description{
 This function loads a 5 column BED file specifying the single-bp Tn5 integration sites.
