@@ -81,7 +81,7 @@ reduceDims <- function(obj,
             test.dat <- list(counts=obj$counts[topSites,], meta=obj$meta)
             M <- regModel(test.dat, 
                           subpeaks=nrow(test.dat$counts))$residuals
-            M <- t(apply(M, 1, function(x){x - min(x, na.rm=T)}))
+            M <- Matrix(t(apply(M, 1, function(x){x - min(x, na.rm=T)})), sparse=T)
             M <- M[Matrix::rowSums(M) > 0,]
         }else{
             M <- obj$residuals[topSites,]
