@@ -798,7 +798,7 @@ regModel <- function(obj,
     }
 
     # attach residuals to object
-    obj[[slotName]] <- res
+    obj[[slotName]] <- Matrix(res, sparse=T)
     obj$norm_method <- "regModel"
 
     # return
