@@ -16,6 +16,8 @@
 #' NMF components by scale factors). Default to TRUE.
 #' @param num.vars number of highly variable ACRs/bins to use for dimensionality reduction.
 #' Defaults to 5000. Set to NULL to use all ACRs/bins.
+#' @param regNum number of peaks/bins to use for regularization. regNum must be equal or
+#' less than num.vars. Defaults to 5000. 
 #' @param cor.max float, maximum spearman correlation between log10nSites (log10 number of
 #' accessible peaks) and singular value to keep. Singular values with correlations greater than
 #' cor.max are removed. Ranges from 0 to 1. Default set to 0.75.
@@ -39,6 +41,7 @@ reduceDims <- function(obj,
                        n.pcs=50,
                        scaleVar=T,
                        num.var=5000,
+		       regNum=5000,
                        cor.max=0.75,
                        doL2=F,
                        doL1=F,
@@ -78,9 +81,12 @@ reduceDims <- function(obj,
         
         # input matrix
         if(refit_residuals & obj$norm_method =="tfidf"){
+	    if(regNum > length(topSites)){
+		regNum <- length(topSites)
+	    }
             test.dat <- list(counts=obj$counts[topSites,], meta=obj$meta)
             M <- regModel(test.dat, 
-                          subpeaks=floor(nrow(test.dat$counts)/4))$residuals
+                          subpeaks=regNum)$residuals
             M <- Matrix(t(apply(M, 1, function(x){x - min(x, na.rm=T)})), sparse=T)
             M <- M[Matrix::rowSums(M) > 0,]
         }else{

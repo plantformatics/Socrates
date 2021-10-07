@@ -10,6 +10,7 @@ reduceDims(
   n.pcs = 50,
   scaleVar = T,
   num.var = 5000,
+  regNum = 5000,
   cor.max = 0.75,
   doL2 = F,
   doL1 = F,
@@ -28,6 +29,9 @@ reduceDims(
 "NMF". Defaults to SVD.}
 
 \item{n.pcs}{numeric, number of singular values to calculate.}
+
+\item{regNum}{number of peaks/bins to use for regularization. regNum must be equal or
+less than num.vars. Defaults to 5000.}
 
 \item{cor.max}{float, maximum spearman correlation between log10nSites (log10 number of
 accessible peaks) and singular value to keep. Singular values with correlations greater than
