@@ -80,7 +80,7 @@ reduceDims <- function(obj,
         if(refit_residuals & obj$norm_method =="tfidf"){
             test.dat <- list(counts=obj$counts[topSites,], meta=obj$meta)
             M <- regModel(test.dat, 
-                          subpeaks=nrow(test.dat$counts))$residuals
+                          subpeaks=floor(nrow(test.dat$counts)/4))$residuals
             M <- Matrix(t(apply(M, 1, function(x){x - min(x, na.rm=T)})), sparse=T)
             M <- M[Matrix::rowSums(M) > 0,]
         }else{
