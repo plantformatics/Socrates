@@ -16,7 +16,6 @@
 #' @param nSample Numeric. Number of synthetic doublets to create per trial.
 #' @param k Numeric. Number of nearest neighbors to search for when estimating doublet enrichment via knn
 #' from the narbor package.
-#' @param n.pcs Numeric. Number of PCS/SVD components to retain when reducing dimensions.
 #' @param threads Numeric. Number of threads to use for mclapply from the parallel package.
 #' @param rdMethod Character. Either "SVD" or "NMF" for dimensionality reduction used previously. Defaults
 #' to NULL, using the method specified in obj$rdMethod. 
@@ -30,7 +29,6 @@ detectDoublets <- function(obj=NULL,
                            nTrials=5,
                            nSample=1000,
                            k=10,
-                           n.pcs=50,
                            threads=1,
                            rdMethod=NULL,
                            svd_slotName="PCA"){
@@ -43,6 +41,7 @@ detectDoublets <- function(obj=NULL,
     if(is.null(obj[[model_name]])){
         stop(" slot: ", model_name, " does not exist. Please ensure that svd_slotName exists before proceeding...")
     }
+    n.pcs <- length(obj[[model_name]]$keep_pcs)
     
     # hidden functions
     .sampleSparseMat <- function(mat = NULL, sampleRatio = 0.5){
