@@ -444,10 +444,14 @@ findCells <- function(obj,
         x$zscore[is.infinite(x$zscore) & x$zscore < 0] <- min(x$zscore[is.finite(x$zscore)])
         x$zscore[is.infinite(x$zscore) & x$zscore > 0] <- max(x$zscore[is.finite(x$zscore)])
         x <- x[order(x$zscore, decreasing=T),]
-        if(min(x$zscore) < (-1*z.thresh) & min(x$prop) > min.freq){
-            below <- subset(x, x$zscore < (-1*z.thresh) & x$prop > min.freq)
-            thresh <- max(below$prop, na.rm=T)
-        }else{
+	prop.z.min <- max(x$prop[x$zscore < -1*z.thresh])
+	if(is.null(prop.z.min){
+	    thresh <- min.freq
+	}else if(is.na(prop.z.min){
+	    thresh <- min.freq
+	}else if(prop.z.min > min.freq){
+	    thresh <- prop.z.min
+	}else{
             thresh <- min.freq
         }
         x <- x[order(x$total, decreasing=T),]
@@ -494,9 +498,13 @@ findCells <- function(obj,
         x$zscore[is.infinite(x$zscore) & x$zscore < 0] <- min(x$zscore[is.finite(x$zscore)])
         x$zscore[is.infinite(x$zscore) & x$zscore > 0] <- max(x$zscore[is.finite(x$zscore)])
         x <- x[order(x$zscore, decreasing=T),]
-        if(min(x$zscore) < (-1*z.thresh) & min(x$prop) > min.freq){
-            below <- subset(x, x$zscore < (-1*z.thresh) & x$prop > min.freq)
-            thresh <- max(below$prop, na.rm=T)
+	prop.z.min <- max(x$prop[x$zscore < -1*z.thresh])
+        if(is.null(prop.z.min){
+            thresh <- min.freq
+        }else if(is.na(prop.z.min){
+            thresh <- min.freq
+        }else if(prop.z.min > min.freq){
+            thresh <- prop.z.min
         }else{
             thresh <- min.freq
         }
