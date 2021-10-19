@@ -446,7 +446,12 @@ findCells <- function(obj,
         x <- x[order(x$zscore, decreasing=T),]
 	score <- any(x$zscore < -1*z.thresh)
 	if(score){
-		prop.z.min <- max(x$prop[x$zscore < -1*z.thresh])
+	    prop.z.min <- max(x$prop[x$zscore < -1*z.thresh])
+	    if(prop.z.min < min.freq){
+		thresh <- min.freq
+	    }else{
+		thresh <- prop.z.min
+	    }
 	}else{
             thresh <- min.freq
         }
@@ -497,6 +502,11 @@ findCells <- function(obj,
 	score <- any(x$zscore < -1*z.thresh)
         if(score){
             prop.z.min <- max(x$prop[x$zscore < -1*z.thresh])
+            if(prop.z.min < min.freq){
+                thresh <- min.freq
+            }else{
+                thresh <- prop.z.min
+            }
         }else{
             thresh <- min.freq
         }
