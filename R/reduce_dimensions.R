@@ -148,17 +148,6 @@ reduceDims <- function(obj,
     rownames(pc) <- colnames(obj[[residuals_slotName]])
     colnames(pc) <- paste0("PC_", seq(1:ncol(pc)))
     
-    # standardize, L2, or L1 reduced dimensions per cell
-    if(verbose){message(" - normalizing reduced dimensions...")}
-    if(doL2){
-        pc <- t(apply(pc, 1, l2norm))
-    }else if(doL1){
-        pc <- t(apply(pc, 1, l1norm))
-    }else if(doSTD){
-        pc <- t(apply(pc, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
-    }
-    pc[is.na(pc)] <- 0
-    
     # remove PCs with correlation to read-depth
     if(verbose){message(" - removing components correlated to read depth...")}
     if(cor.max < 1){
@@ -171,6 +160,17 @@ reduceDims <- function(obj,
         idx.keep <- seq(1:ncol(pc))
     }
     
+    # standardize, L2, or L1 reduced dimensions per cell
+    if(verbose){message(" - normalizing reduced dimensions...")}
+    if(doL2){
+        pc <- t(apply(pc, 1, l2norm))
+    }else if(doL1){
+        pc <- t(apply(pc, 1, l1norm))
+    }else if(doSTD){
+        pc <- t(apply(pc, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
+    }
+    pc[is.na(pc)] <- 0
+
     # return
     obj[[svd_slotName]] <- pc
     model_slot <- paste0(svd_slotName, "_model")
