@@ -76,6 +76,8 @@ reduceDims <- function(obj,
     # if use subset
     if(!is.null(num.var)){
         row.var <- RowVar(obj[[residuals_slotName]])
+	row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
+	row.var <- row.var / row.means
         row.var <- row.var[order(row.var, decreasing=T)]
         topSites <- names(head(row.var, n=num.var))
         
