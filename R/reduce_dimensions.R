@@ -41,7 +41,7 @@ reduceDims <- function(obj,
                        n.pcs=50,
                        scaleVar=T,
                        num.var=5000,
-		       regNum=5000,
+		               regNum=5000,
                        cor.max=0.75,
                        doL2=F,
                        doL1=F,
@@ -76,19 +76,18 @@ reduceDims <- function(obj,
     # if use subset
     if(!is.null(num.var)){
         row.var <- RowVar(obj[[residuals_slotName]])
-	row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
-	row.var <- row.var / sqrt(row.means)
+    	row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
+	    row.var <- row.var / sqrt(row.means)
         row.var <- row.var[order(row.var, decreasing=T)]
         topSites <- names(head(row.var, n=num.var))
         
         # input matrix
         if(refit_residuals & obj$norm_method =="tfidf"){
-	    if(regNum > length(topSites)){
-		regNum <- length(topSites)
-	    }
+            if(regNum > length(topSites)){
+                regNum <- length(topSites)
+            }
             test.dat <- list(counts=obj$counts[topSites,], meta=obj$meta)
-            M <- regModel(test.dat, 
-                          subpeaks=regNum)$residuals
+            M <- regModel(test.dat, subpeaks=regNum, verbose=verbose)$residuals
             M <- Matrix(t(apply(M, 1, function(x){x - min(x, na.rm=T)})), sparse=T)
             M <- M[Matrix::rowSums(M) > 0,]
         }else{

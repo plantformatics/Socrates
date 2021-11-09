@@ -9,7 +9,6 @@ detectDoublets(
   nTrials = 5,
   nSample = 1000,
   k = 10,
-  n.pcs = 50,
   threads = 1,
   rdMethod = NULL,
   svd_slotName = "PCA"
@@ -25,8 +24,6 @@ normalization.}
 
 \item{k}{Numeric. Number of nearest neighbors to search for when estimating doublet enrichment via knn
 from the narbor package.}
-
-\item{n.pcs}{Numeric. Number of PCS/SVD components to retain when reducing dimensions.}
 
 \item{threads}{Numeric. Number of threads to use for mclapply from the parallel package.}
 

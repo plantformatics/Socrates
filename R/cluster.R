@@ -145,6 +145,7 @@ filtDistClst <- function(b,
 #' @param cluster_slotName character, character string for naming the results of callClusters.
 #' Defaults to "Clusters".
 #' @param verbose logical. Defaults to FALSE.
+#' @param ... additional arguments sent to Seurat::FindClusters
 #'
 #' @rdname callClusters
 #' @export
@@ -164,7 +165,8 @@ callClusters  <- function(obj,
                           svd_slotName="PCA",
                           umap_slotName="UMAP",
                           cluster_slotName="Clusters",
-                          verbose=FALSE){
+                          verbose=FALSE,
+                          ...){
 
     # filter umap coordinates
     if(verbose){message(" - filtering outliers in UMAP manifold (z-score e.thresh = ", e.thresh, ") ...")}
@@ -182,8 +184,8 @@ callClusters  <- function(obj,
     sro[["svd"]] <- CreateDimReducObject(embeddings = pca.filtered, key = "PC_", assay = DefaultAssay(sro))
     sro[["umap"]] <- CreateDimReducObject(embeddings=as.matrix(umap.filtered), key="UMAP_", assay=DefaultAssay(sro))
     sro <- AddMetaData(sro, meta.filtered)
-    sro <- FindNeighbors(sro, dims = 1:ncol(sro[[clustOB]]), reduction=clustOB, nn.eps=0, k.param=k.near)
-    sro <- FindClusters(sro, resolution=res, reduction=clustOB, n.start=100, algorithm=cl.method)
+    sro <- FindNeighbors(sro, dims = 1:ncol(sro[[clustOB]]), nn.eps=0, k.param=k.near, annoy.metric="cosine")
+    sro <- FindClusters(sro, resolution=res, n.start=100, algorithm=cl.method, ...)
     sro.meta <- data.frame(sro@meta.data)
     sro.meta$seurat_clusters <- factor(sro.meta$seurat_clusters)
 

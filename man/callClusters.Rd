@@ -21,7 +21,8 @@ callClusters(
   svd_slotName = "PCA",
   umap_slotName = "UMAP",
   cluster_slotName = "Clusters",
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{
@@ -73,6 +74,8 @@ to "UMAP.}
 Defaults to "Clusters".}
 
 \item{verbose}{logical. Defaults to FALSE.}
+
+\item{...}{additional arguments sent to Seurat::FindClusters}
 
 \item{key}{character, name of UMAP key when creating Seurat object. Defaults to "UMAP_".}
 }
