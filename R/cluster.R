@@ -184,7 +184,8 @@ callClusters  <- function(obj,
     sro[["svd"]] <- CreateDimReducObject(embeddings = pca.filtered, key = "PC_", assay = DefaultAssay(sro))
     sro[["umap"]] <- CreateDimReducObject(embeddings=as.matrix(umap.filtered), key="UMAP_", assay=DefaultAssay(sro))
     sro <- AddMetaData(sro, meta.filtered)
-    sro <- FindNeighbors(sro, dims = 1:ncol(sro[[clustOB]]), nn.eps=0, k.param=k.near, annoy.metric="cosine")
+    sro <- FindNeighbors(sro, dims = 1:ncol(sro[[clustOB]]), reduction=clustOB, 
+                         nn.eps=0, k.param=k.near, annoy.metric="cosine")
     sro <- FindClusters(sro, resolution=res, n.start=100, algorithm=cl.method, ...)
     sro.meta <- data.frame(sro@meta.data)
     sro.meta$seurat_clusters <- factor(sro.meta$seurat_clusters)
