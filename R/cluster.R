@@ -184,12 +184,20 @@ callClusters  <- function(obj,
     sro[["svd"]] <- CreateDimReducObject(embeddings = pca.filtered, key = "PC_", assay = DefaultAssay(sro))
     sro[["umap"]] <- CreateDimReducObject(embeddings=as.matrix(umap.filtered), key="UMAP_", assay=DefaultAssay(sro))
     sro <- AddMetaData(sro, meta.filtered)
+    if(nrow(meta.filtered) > 250000){
+        nn.eps.val <- 0.25
+        n.starts <- 10
+    }else{
+        nn.eps.val <- 0
+        n.starts <- 100
+    }
     sro <- FindNeighbors(sro, dims = 1:ncol(sro[[clustOB]]), reduction=clustOB, 
-                         nn.eps=0, k.param=k.near, annoy.metric="cosine")
-    sro <- FindClusters(sro, resolution=res, n.start=100, algorithm=cl.method, ...)
+                         nn.eps=nn.eps.val, k.param=k.near, annoy.metric="cosine")
+    sro <- FindClusters(sro, resolution=res, n.start=n.starts, algorithm=cl.method, ...)
     sro.meta <- data.frame(sro@meta.data)
     sro.meta$seurat_clusters <- factor(sro.meta$seurat_clusters)
-
+    if(verbose){message(" - finished graph-based clustering ...")}
+    
     # remove temp
     rm(umap.filtered)
     rm(counts.filtered)
@@ -226,6 +234,7 @@ callClusters  <- function(obj,
     }
 
     # filter by cluster size
+    if(verbose){message(" - filtering clusters with low cell/read counts ...")}
     agg.reads <- aggregate(sro.meta$nSites~sro.meta$seurat_clusters, FUN=sum)
     colnames(agg.reads) <- c("clusters","readDepth")
     clust.cnts <- table(sro.meta$seurat_clusters)
