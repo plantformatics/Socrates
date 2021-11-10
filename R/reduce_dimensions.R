@@ -76,7 +76,7 @@ reduceDims <- function(obj,
     # if use subset
     if(!is.null(num.var)){
         if(!is.null(obj$meta$library) & length(unique(obj$meta$library)) > 1){
-            df <- lapply(unique(obj$meta$library)), function(z){
+            df <- lapply(unique(obj$meta$library), function(z){
                 ids <- rownames(subset(obj$meta, obj$meta$library==z))
                 frac <- length(ids)/nrow(obj$meta)
                 row.var <- RowVar(obj[[residuals_slotName]][,ids])
