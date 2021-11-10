@@ -75,13 +75,29 @@ reduceDims <- function(obj,
     
     # if use subset
     if(!is.null(num.var)){
-        row.var <- RowVar(obj[[residuals_slotName]])
-    	row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
-    	fits <- smooth.spline(x=row.means, y=row.var, spar=1)
-    	pred <- predict(fits, row.means)
-	    adj.row.var <- row.var - pred$y
-        adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
-        topSites <- names(head(adj.row.var, n=num.var))
+        if(!is.null(obj$meta$library) & length(unique(obj$meta$library)) > 1){
+            df <- lapply(unique(obj$meta$library)), function(z){
+                ids <- rownames(subset(obj$meta, obj$meta$library==z))
+                frac <- length(ids)/nrow(obj$meta)
+                row.var <- RowVar(obj[[residuals_slotName]][,ids])
+                row.means <- Matrix::rowMeans(obj[[residuals_slotName]][,ids])
+                vals <- (loess(row.var~row.means)$residuals*frac)
+                names(vals) <- names(row.means)
+                return(vals)
+            }
+            df <- as.matrix(do.call(cbind, df))
+            adj.row.var <- rowSums(df, na.rm=T)
+            adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
+            topSites <- names(head(adj.row.var, n=num.var))            
+            
+        }else{
+            row.var <- RowVar(obj[[residuals_slotName]])
+            row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
+            adj.row.var <- loess(row.var~row.means)$residuals
+            names(adj.row.var) <- names(row.var)
+            adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
+            topSites <- names(head(adj.row.var, n=num.var))
+        }
         
         # input matrix
         if(refit_residuals & obj$norm_method =="tfidf"){
