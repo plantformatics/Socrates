@@ -77,9 +77,11 @@ reduceDims <- function(obj,
     if(!is.null(num.var)){
         row.var <- RowVar(obj[[residuals_slotName]])
     	row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
-	    row.var <- row.var / sqrt(row.means)
-        row.var <- row.var[order(row.var, decreasing=T)]
-        topSites <- names(head(row.var, n=num.var))
+    	fits <- smooth.spline(x=row.means, y=row.var, spar=1)
+    	pred <- predict(fits, row.means)
+	    adj.row.var <- row.var - pred$y
+        adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
+        topSites <- names(head(adj.row.var, n=num.var))
         
         # input matrix
         if(refit_residuals & obj$norm_method =="tfidf"){
