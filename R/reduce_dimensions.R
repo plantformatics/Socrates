@@ -84,7 +84,7 @@ reduceDims <- function(obj,
                 vals <- (loess(row.var~row.means)$residuals*frac)
                 names(vals) <- names(row.means)
                 return(vals)
-            }
+            })
             df <- as.matrix(do.call(cbind, df))
             adj.row.var <- rowSums(df, na.rm=T)
             adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
