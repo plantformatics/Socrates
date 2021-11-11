@@ -15,7 +15,10 @@
 #' @param scaleVars logical, whether or not to scale PCs by variance explained (or to scale
 #' NMF components by scale factors). Default to TRUE.
 #' @param num.vars number of highly variable ACRs/bins to use for dimensionality reduction.
-#' Defaults to 5000. Set to NULL to use all ACRs/bins.
+#' Variance is stabilized using loess regression between the feature variance and mean. 
+#' Defaults to 5000. Set to NULL to use all ACRs/bins. To select features above a specific
+#' stabilized variance value, set num.var to a numeric value less than 100. In all cases, 
+#' Socrates will take a minimum of 100 features to perform dimensionality reduction.
 #' @param regNum number of peaks/bins to use for regularization. regNum must be equal or
 #' less than num.vars. Defaults to 5000. 
 #' @param cor.max float, maximum spearman correlation between log10nSites (log10 number of
@@ -75,29 +78,28 @@ reduceDims <- function(obj,
     
     # if use subset
     if(!is.null(num.var)){
-        if(!is.null(obj$meta$library) & length(unique(obj$meta$library)) > 1){
-            df <- lapply(unique(obj$meta$library), function(z){
-                ids <- rownames(subset(obj$meta, obj$meta$library==z))
-                frac <- length(ids)/nrow(obj$meta)
-                row.var <- RowVar(obj[[residuals_slotName]][,ids])
-                row.means <- Matrix::rowMeans(obj[[residuals_slotName]][,ids])
-                vals <- (loess(row.var~row.means)$residuals*frac)
-                names(vals) <- names(row.means)
-                return(vals)
-            })
-            df <- as.matrix(do.call(cbind, df))
-            adj.row.var <- rowSums(df, na.rm=T)
-            adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
-            topSites <- names(head(adj.row.var, n=num.var))            
-            
-        }else{
+        if(verbose){" - identifying variable features for clustering ..."}
+        if(num.var >= 100){
             row.var <- RowVar(obj[[residuals_slotName]])
             row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
             adj.row.var <- loess(row.var~row.means)$residuals
             names(adj.row.var) <- names(row.var)
             adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
             topSites <- names(head(adj.row.var, n=num.var))
+        }else{
+            row.var <- RowVar(obj[[residuals_slotName]])
+            row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
+            adj.row.var <- loess(row.var~row.means)$residuals
+            names(adj.row.var) <- names(row.var)
+            adj.row.var <- adj.row.var[order(adj.row.var, decreasing=T)]
+            topSites <- names(adj.row.var[adj.row.var > num.var])
+            if(length(topSites) < 50){
+                topSites <- names(adj.row.var[1:100])
+            }
         }
+        
+        # verbose
+        if(verbose){message(" - keeping ",length(topSites), " variable features for dimensionality reduction ...")}
         
         # input matrix
         if(refit_residuals & obj$norm_method =="tfidf"){

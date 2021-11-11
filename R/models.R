@@ -1196,6 +1196,7 @@ regModel2 <- function(obj,
 #' @param log_scale_tf logical, whether to log1p transform the term frequency (TF).
 #' Defaults to TRUE.
 #' @param scale_factor numeric,
+#' @param doL2 logical, whether or not to L2 normalize TFIDF values (per cell). Defaults to FALSE.
 #' @param slotName character, specify the slot name for saving residuals. Useful for saving
 #' multiple normalization steps. Note, make sure to update the slotName argument for
 #' downstream functions. Defaults to "residuals".
@@ -1207,6 +1208,7 @@ tfidf <- function(obj,
                   frequencies=T,
                   log_scale_tf=T,
                   scale_factor=10000,
+                  doL2=F,
                   slotName="residuals"){
 
     # set bmat
@@ -1253,6 +1255,14 @@ tfidf <- function(obj,
 
     # TF-IDF
     tf_idf_counts = .safe_tfidf(tf, idf)
+    
+    # do L2?
+    if(doL2){
+        l2norm <- function(x){x/sqrt(sum(x^2))}
+        colNorm <- sqrt(Matrix::colSums(tf_idf_counts^2))
+        tf_idf_counts <- tf_idf_counts %*% Diagonal(x=1/colNorm)
+    }
+    
     rownames(tf_idf_counts) = rownames(bmat)
     colnames(tf_idf_counts) = colnames(bmat)
     obj[[slotName]] <- Matrix(tf_idf_counts, sparse=T)
