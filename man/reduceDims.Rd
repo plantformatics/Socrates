@@ -59,7 +59,10 @@ object. Defaults to "PCA".}
 NMF components by scale factors). Default to TRUE.}
 
 \item{num.vars}{number of highly variable ACRs/bins to use for dimensionality reduction.
-Defaults to 5000. Set to NULL to use all ACRs/bins.}
+Variance is stabilized using loess regression between the feature variance and mean.
+Defaults to 5000. Set to NULL to use all ACRs/bins. To select features above a specific
+stabilized variance value, set num.var to a numeric value less than 100. In all cases,
+Socrates will take a minimum of 100 features to perform dimensionality reduction.}
 
 \item{stdLSI}{logical, whether or not to standardize barcodes.}
 }

@@ -9,6 +9,7 @@ tfidf(
   frequencies = T,
   log_scale_tf = T,
   scale_factor = 10000,
+  doL2 = F,
   slotName = "residuals"
 )
 }
@@ -21,6 +22,8 @@ tfidf(
 Defaults to TRUE.}
 
 \item{scale_factor}{numeric,}
+
+\item{doL2}{logical, whether or not to L2 normalize TFIDF values (per cell). Defaults to FALSE.}
 
 \item{slotName}{character, specify the slot name for saving residuals. Useful for saving
 multiple normalization steps. Note, make sure to update the slotName argument for
