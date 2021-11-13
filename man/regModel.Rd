@@ -17,7 +17,7 @@ regModel(
   weights = NULL,
   method = "lm",
   alpha = 0.5,
-  center.resid = F,
+  center.resid = T,
   scale.resid = F,
   make.sparse = F,
   verbose = FALSE,
@@ -66,12 +66,12 @@ ridge regression. Default 0.5 for elastic net regression.}
 
 \item{center.resid}{logical, whether to zero-center residuals. Defaults to FALSE.}
 
-\item{scale.resid}{logical, whther to standardize residuals. Defaults to FALSE.}
+\item{scale.resid}{logical, whether to standardize residuals. Defaults to TRUE.}
 
 \item{make.sparse}{logical, whether or not to set negative values to 0, and reduce memory usage.
 Setting this parameter to TRUE has negligible effects on downstream results. Setting make.sparse
 to TRUE (default) will override center.resid and scale.resid arguments, setting them to FALSE. make.sparse
-is mutally exclusive with the argument 'variates'. Defaults to TRUE}
+is mutally exclusive with the argument 'variates'. Defaults to FALSE}
 
 \item{verbose}{logical. Defaults to FALSE.}
 

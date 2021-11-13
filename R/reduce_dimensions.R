@@ -78,7 +78,7 @@ reduceDims <- function(obj,
     
     # if use subset
     if(!is.null(num.var)){
-        if(verbose){" - identifying variable features for clustering ..."}
+        if(verbose){message(" - identifying variable features for clustering ...")}
         if(num.var >= 100){
             row.var <- RowVar(obj[[residuals_slotName]])
             row.means <- Matrix::rowMeans(obj[[residuals_slotName]])
@@ -112,7 +112,7 @@ reduceDims <- function(obj,
             M <- M[Matrix::rowSums(M) > 0,]
         }else{
             M <- obj$residuals[topSites,]
-            if(obj$norm_method != "tfidf"){
+            if(obj$norm_method != "tfidf" & method=="NMF"){
                 M <- t(apply(M, 1, function(x){
                     x - min(x, na.rm=T)
                 }))

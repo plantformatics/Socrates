@@ -266,11 +266,11 @@ logisticModel <- function(obj,
 #' @param alpha numeric, sets the alpha parameter for glmnet. 0 for LASSO like regression, 1 for
 #' ridge regression. Default 0.5 for elastic net regression.
 #' @param center.resid logical, whether to zero-center residuals. Defaults to FALSE.
-#' @param scale.resid logical, whther to standardize residuals. Defaults to FALSE.
+#' @param scale.resid logical, whether to standardize residuals. Defaults to TRUE.
 #' @param make.sparse logical, whether or not to set negative values to 0, and reduce memory usage.
 #' Setting this parameter to TRUE has negligible effects on downstream results. Setting make.sparse
 #' to TRUE (default) will override center.resid and scale.resid arguments, setting them to FALSE. make.sparse
-#' is mutally exclusive with the argument 'variates'. Defaults to TRUE
+#' is mutally exclusive with the argument 'variates'. Defaults to FALSE
 #' @param verbose logical. Defaults to FALSE.
 #' @param slotName character, specify the slot name for saving residuals. Useful for saving
 #' multiple normalization steps. Note, make sure to update the slotName argument for
@@ -291,7 +291,7 @@ regModel <- function(obj,
                      weights=NULL,
                      method="lm",
                      alpha=0.5,
-                     center.resid=F,
+                     center.resid=T,
                      scale.resid=F,
                      make.sparse=F,
                      verbose=FALSE,
