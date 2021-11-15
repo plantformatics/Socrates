@@ -450,10 +450,10 @@ regModel <- function(obj,
     max_bin <- max(bin_ind)
 
     # prepare residual  matrix
-    res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
-                  dimnames = list(peaks, rownames(regressor_data)))
-    #res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
-    #              dimnames = list(peaks, rownames(regressor_data)), sparse=T)
+    #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
+    #              dimnames = list(peaks, rownames(regressor_data)))
+    res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
+                  dimnames = list(peaks, rownames(regressor_data)), sparse=T)
 
     # iterate
     if(verbose){
@@ -510,11 +510,11 @@ regModel <- function(obj,
     #                     dimnames=list(levels(res$i), levels(res$j)))
     if(make.sparse){
         res[res < 0] <- 0
-        res <- Matrix(res, sparse=T)
+        #res <- Matrix(res, sparse=T)
         res <- drop0(res, tol=0)
-    }else{
-        res <- Matrix(res, sparse=T)
-    }
+    }#else{
+        #res <- Matrix(res, sparse=T)
+    #}
 
     # remove na
     res[is.na(res)] <- 0

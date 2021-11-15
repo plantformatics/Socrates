@@ -180,7 +180,7 @@ reduceDims <- function(obj,
     }
     
     # standardize, L2, or L1 reduced dimensions per cell
-    if(verbose){message(" - normalizing reduced dimensions...")}
+    if(verbose & any(c(doL2, doL1, doSTD))){message(" - normalizing reduced dimensions...")}
     if(doL2){
         pc <- t(apply(pc, 1, l2norm))
     }else if(doL1){
