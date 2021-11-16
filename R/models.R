@@ -452,7 +452,7 @@ regModel <- function(obj,
     # prepare residual  matrix
     #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
     #              dimnames = list(peaks, rownames(regressor_data)))
-    res <- sparseMatrix(i = integer(0), j = integer(0), dims = x@Dim, dimnames = X@Dimnames)
+    res <- sparseMatrix(i = integer(0), j = integer(0), dims = x@Dim, dimnames = x@Dimnames)
     #res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
     #              dimnames = list(peaks, rownames(regressor_data)), sparse=T)
 
