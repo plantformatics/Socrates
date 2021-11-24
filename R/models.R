@@ -450,38 +450,62 @@ regModel <- function(obj,
     max_bin <- max(bin_ind)
 
     # prepare residual  matrix
-    #res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
-    #              dimnames = list(peaks, rownames(regressor_data)))
-    res <- sparseMatrix(i = integer(0), j = integer(0), dims = x@Dim, dimnames = x@Dimnames)
-    #res <- Matrix(NA_real_, length(peaks), nrow(regressor_data),
-    #              dimnames = list(peaks, rownames(regressor_data)), sparse=T)
-
-    # iterate
-    if(verbose){
+    if(nthreads == 1 & ncol(x) < 100000){
+        res <- matrix(NA_real_, length(peaks), nrow(regressor_data),
+                      dimnames = list(peaks, rownames(regressor_data)))
         pb <- txtProgressBar(min = 0, max = max_bin, style = 3)
+    
+        # iterate
+        for(i in 1:max_bin){
+            peaks_bin <- peaks[bin_ind == i]
+            if(link=="logit"){
+                mu <- exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)) /
+                    (1+exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
+            }else if(link == "probit"){
+                mu <- invprobit(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data))
+            }else if(link =="cloglog"){
+                mu <- 1-exp(-exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
+            }
+            y <- as.matrix(x[peaks_bin, , drop=FALSE])
+            if(type=="deviance"){
+                res[peaks_bin, ] <- deviance_residual(y, mu, 1)
+            }else if(type=="pearson"){
+                res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            }else if(type=="response"){
+                res[peaks_bin,] <- y - mu
+            }else{
+                res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
+            }
+            if(verbose){setTxtProgressBar(pb, i)}
+        }
+        if(verbose){
+            close(pb)
+        }
+        res <- Matrix(res, sparse=T)
+    }else{
+        res <- mclapply(seq(1:max_bin), function(i){
+            peaks_bin <- peaks[bin_ind == i]
+            if(link=="logit"){
+                mu <- exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)) /
+                    (1+exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
+            }else if(link == "probit"){
+                mu <- invprobit(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data))
+            }else if(link =="cloglog"){
+                mu <- 1-exp(-exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
+            }
+            y <- as.matrix(x[peaks_bin, , drop=FALSE])
+            if(type=="deviance"){
+                Matrix(deviance_residual(y, mu, 1), sparse=T)
+            }else if(type=="pearson"){
+                Matrix(pearson_residual(y, mu, pars_fit[peaks_bin,'theta']), sparse=T)
+            }else if(type=="response"){
+                Matrix(y - mu, sparse=T)
+            }else{
+                Matrix(pearson_residual(y, mu, pars_fit[peaks_bin,'theta']), sparse=T)
+            }
+        }, mc.cores=nthreads)
+        res <- do.call(rbind, res)
     }
-    for(i in 1:max_bin){
-        peaks_bin <- peaks[bin_ind == i]
-        if(link=="logit"){
-            mu <- exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)) /
-                (1+exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
-        }else if(link == "probit"){
-            mu <- invprobit(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data))
-        }else if(link =="cloglog"){
-            mu <- 1-exp(-exp(tcrossprod(pars_fit[peaks_bin, -1, drop=FALSE], regressor_data)))
-        }
-        y <- as.matrix(x[peaks_bin, , drop=FALSE])
-        if(type=="deviance"){
-            res[peaks_bin, ] <- deviance_residual(y, mu, 1)
-        }else if(type=="pearson"){
-            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-        }else if(type=="response"){
-            res[peaks_bin,] <- y - mu
-        }else{
-            res[peaks_bin, ] <- pearson_residual(y, mu, pars_fit[peaks_bin,'theta'])
-        }
-        if(verbose){setTxtProgressBar(pb, i)}
-    }#, mc.cores=nthreads)
         # if(is.null(variates)){
         #     if(make.sparse==F){
         #         if(center.resid==T & scale.resid==F){
@@ -497,25 +521,10 @@ regModel <- function(obj,
         #     }
         # }
 
-    if(verbose){
-        close(pb)
-    }
-
-    # make sparse
-    # res <- do.call(rbind, res)
-    # res$i <- factor(res$i)
-    # res$j <- factor(res$j)
-    # res <- sparseMatrix(i=as.numeric(res$i),
-    #                     j=as.numeric(res$j),
-    #                     x=as.numeric(res$x),
-    #                     dimnames=list(levels(res$i), levels(res$j)))
     if(make.sparse){
         res[res < 0] <- 0
-        #res <- Matrix(res, sparse=T)
         res <- drop0(res, tol=0)
-    }#else{
-        #res <- Matrix(res, sparse=T)
-    #}
+    }
 
     # remove na
     res[is.na(res)] <- 0
@@ -530,12 +539,14 @@ regModel <- function(obj,
         .stdize <- function(z){
             (z-mean(z, na.rm=T))/sd(z, na.rm=T)
         }
-        res <- t(apply(res, 1, .stdize))
+        if(verbose){message("   * standardizing features ...")}
+        res <- Matrix(t(apply(res, 1, .stdize)),sparse=T)
     }else if(center.resid){
         .center <- function(z){
             z-mean(z, na.rm=T)
         }
-        res <- t(apply(res, 1, .center))
+        if(verbose){message("   * centering features ...")}
+        res <- Matrix(t(apply(res, 1, .center)), sparse=T)
     }
 
 
