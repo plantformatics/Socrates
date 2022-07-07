@@ -43,6 +43,19 @@ library(devtools)
 # install
 devtools::install_github("plantformatics/Socrates", ref="main")
 ```
+## Docker Image
+
+Download the docker image
+```
+docker pull supermanwasd/rpackage_socrates
+```
+Run the docker image
+```
+docker run -p 8787:8787 -it supermanwasd/rpackage_socrates /bin/bash
+```
+Open browser and open the webpage(http://localhost:8787). The id and password both are rstudio. The image was constructed using rstudio-sever docker image (https://www.rocker-project.org/).
+
+Thank you to [YunChuan Wang](https://github.com/supermanwasd) for setting up the docker file. 
 
 ---
 

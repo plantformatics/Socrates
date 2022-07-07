@@ -178,7 +178,7 @@ countRemoveOrganelle <- function(obj,
         if (remove_reads == TRUE){
 
             #Subsample bed so organelle reads do not interfere with ACR calls
-            keep_bed_group <- obj$bed$V1 %notin% organelle
+            keep_bed_group <- ! obj$bed$V1 %in% organelle
             final_bed <- subset(obj$bed, keep_bed_group)
             obj$bed <- final_bed
             obj$PtMt <- zz
