@@ -1,4 +1,17 @@
-## The obj should have "bed" ,"ann" (gtf) information from loadBEDandGenomeData function.
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' Find the genes near Tn5 insertion
+#'
+#' This function calculates the accessibilities near annotated genes per cells.  
+#' Can be run after loadBEDandGenomeData function.
+#'
+#' @importFrom GenomicRanges GRanges
+#' @importFrom GenomicRanges findOverlaps
+#' @param obj Object output from loadBEDandGenomeData. Required.
+#' @param FeatureName character, Must be one of "gene" or "transcript". Default is "gene".
+#' @param nRange numeric, Extension length for annotation. It will increase the finding regions backward and forward 'nRange'bp of genes.
+
 
 GeneBodyAccessibility <- function(obj, FeatureName="gene", nRange=500){
 
