@@ -1,6 +1,52 @@
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
+#' Reload a bed file of Tn5 integration events into a socrates obj
+#'
+#' This function re-inserts the bed file back into the socrates object if it
+#' has been missing in prior analysis
+#'
+#' @param obj Socrates object 
+#' @param bed file with tn5 integrations mapped to 1bp
+reload_bed_file <- function(obj, bed) {
+    
+    if(grepl(".gz$", bed)){
+        obj$bed <- read.table(gzfile(as.character(bed)))
+    }else{
+        obj$bed <- read.table(as.character(bed))}
+    
+    return(obj)
+}
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#' Reload a gtf or gff3 file into a socrates object
+#'
+#' This function re-inserts the gff3 file back into the socrates object if it
+#' has been missing in prior analysis
+#'
+#' @param obj Socrates object 
+#' @param ann Annotation file in gtf or gff3 format.
+reload_gff_file <- function(obj, ann) {
+    
+    if(grepl(".gtf", ann)){
+        anntype <- "gtf"
+    }else{
+        anntype <- "gff3"
+    }
+        
+    gff <- suppressWarnings(suppressMessages(makeTxDbFromGFF(as.character(ann), format=anntype, dbxrefTag="Parent")))
+    
+    obj$gff <- gff
+    return(obj)
+}
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
 #' Find the genes near Tn5 insertion
 #'
 #' This function calculates the accessibilities near annotated genes per cells.  
