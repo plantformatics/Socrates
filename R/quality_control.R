@@ -95,7 +95,7 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
         start.coordinates <- data.frame(V1=a$V1, V2=(a$V2), V3=(a$V2+1), V4=a$V4, V5="+")
         end.coordinates <- data.frame(V1=a$V1, V2=(a$V3-1), V3=a$V2, V4=a$V4, V5="-")
         all.coordinates <- rbind(start.coordinates, end.coordinates)
-        all.coordinates <- all.coordinates[order(all.coordinates$V1, all.coordiantes$V2, decreasing=F),]
+        all.coordinates <- all.coordinates[order(all.coordinates$V1, all.coordinates$V2, decreasing=F),]
         a <- all.coordinates[!duplicated(all.coordinates),]
         
     }
