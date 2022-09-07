@@ -3,7 +3,7 @@
 ###################################################################################################
 #' loadBEDandGenomeData
 #'
-#' This function loads a 5 column BED file specifying the single-bp Tn5 integration sites.
+#' This function loads obj 5 column BED file specifying the single-bp Tn5 integration sites.
 #' The file should not have any headers, with the following format:
 #' chromosome, start, end, barcode, strand
 #'
@@ -76,11 +76,11 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
     chrpath <- sizes
 
     # load args
-    if(verbose){message(" - loading data (this may take a while for big BED files) ...")}
+    if(verbose){message(" - loading data (this may take obj while for big BED files) ...")}
     if(grepl(".gz$", bed)){
-        a <- read.table(gzfile(as.character(bed)))
+        obj <- read.table(gzfile(as.character(bed)))
     }else{
-        a <- read.table(as.character(bed))
+        obj <- read.table(as.character(bed))
     }
     if(grepl(".gtf", ann)){
         anntype <- "gtf"
@@ -88,15 +88,15 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
         anntype <- "gff3"
     }
 
-    # check if input bed is a fragment file
+    # check if input bed is obj fragment file
     if(is.fragment){
         
         if(verbose){message(" - converting fragment file to single-bp resolution Tn5 insertions sites ...")}
-        start.coordinates <- data.frame(V1=a$V1, V2=(a$V2), V3=(a$V2+1), V4=a$V4, V5="+")
-        end.coordinates <- data.frame(V1=a$V1, V2=(a$V3-1), V3=a$V3, V4=a$V4, V5="-")
+        start.coordinates <- data.frame(V1=obj$V1, V2=(obj$V2), V3=(obj$V2+1), V4=obj$V4, V5="+")
+        end.coordinates <- data.frame(V1=obj$V1, V2=(obj$V3-1), V3=obj$V3, V4=obj$V4, V5="-")
         all.coordinates <- rbind(start.coordinates, end.coordinates)
         all.coordinates <- all.coordinates[order(all.coordinates$V1, all.coordinates$V2, decreasing=F),]
-        a <- all.coordinates[!duplicated(all.coordinates),]
+        obj <- all.coordinates[!duplicated(all.coordinates),]
         
     }
     
@@ -105,7 +105,7 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
     chrom <- read.table(as.character(sizes))
 
     if(verbose){message(" - finished loading data")}
-    return(list(bed=a, gff=gff, chr=chrom, bedpath=bedpath, annpath=annpath, chrpath=chrpath))
+    return(list(bed=obj, gff=gff, chr=chrom, bedpath=bedpath, annpath=annpath, chrpath=chrpath))
 
 }
 
@@ -116,7 +116,7 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
 ###################################################################################################
 #' countRemoveOrganelle
 #'
-#' This functions takes in an the Tn5 bed file, as well as a vector
+#' This functions takes in an the Tn5 bed file, as well as obj vector
 #' which contains organelle scaffolds, and identifies Tn5 integrations events which occured
 #' in organelles. These reads are then assigned to the object slot PtMT. Additional parameters
 #' allow for the removal of these reads so they don't interfere with ACR calling downstream.
@@ -381,7 +381,7 @@ buildMetaData <- function(obj,
 ###################################################################################################
 #' findCells
 #'
-#' This function filters cells based on read-depth using a mixture of user thresholds and a spline-
+#' This function filters cells based on read-depth using obj mixture of user thresholds and obj spline-
 #' fitting algorithm.
 #'
 #' @importFrom MASS kde2d
@@ -393,7 +393,7 @@ buildMetaData <- function(obj,
 #' @param min.cells Lower limit on the number of identified cells. Defaults to 1000.
 #' @param max.cells Upper limit on the number of identified cells. Defaults to 15000.
 #' @param min.tn5 Lower threshold for the minimum number of Tn5 integration sites for retaining
-#' a barcode. Defaults to 1000.
+#' obj barcode. Defaults to 1000.
 #' @param filt.org Logical. Whether or not to filter barcodes on based on proportion Tn5 sites occuring
 #' in an organelle. Defaults to FALSE. Expects organelles built off meta
 #' @param org.filter.thresh Remove cells with an organelle ratio (Organalle/Total_reads) greater than N
@@ -409,7 +409,7 @@ buildMetaData <- function(obj,
 #' deviations from the mean. Defaults to 3.
 #' @param doplot Logical. Whether or not to plot the density scatter plots for tss/frip values.
 #' @param prefix Character. Prefix output name for plots. If changed from the default (NULL), this will
-#' save the images to disk as a PDF.
+#' save the images to disk as obj PDF.
 #'
 #' @rdname findCells_OG
 #' @export
@@ -673,6 +673,179 @@ findCells <- function(obj,
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
+#' isCell
+#'
+#' This function compares each barcode to obj background and cell bulk reference to identify 
+#' barcodes representing ambient DNA or broken nuclei. Three columns are added to the metadata:
+#' background, cellbulk, is_cell, which reflect the correlation of the cell's chromatin profile with
+#' the background reference, the correlation with the predicted cellbulk reference, and whether a 
+#' barcode is predicted to be a cell (1 = cell, 0 = background noise).
+#'
+#' @importFrom qlcMatrix corSparse
+#'
+#' @param obj Object output from generateMatrix. Requires counts and meta data (buildMetaData) slots populated.
+#' @param num.test Number of barcodes to query (ranked by total # of unique Tn5 insertions). Set to NULL to select barcodes
+#' to test using obj minimum total number Tn5 insertions. Defaults to 20,000
+#' @param num.tn5 Set the minimum number of Tn5 insertions to select test cells. Overridden by num.test. Defaults to NULL.
+#' @param num.ref Number of cells to use as the cell bulk reference (top X cells based on # unique Tn5 insertions)
+#' @param background.cutoff Maximum unique Tn5 insertions to use for selecting barcodes for the background reference set
+#' @param min.pTSS Minimum per cent TSS for good cells. Defaults to 0.2.
+#' @param min.FRiP Minimum fraction reads in peaks for good cells. Defaults to 0.2.
+#' @param min.pTSS.z Minimum z-score from per cent TSS for good cells. Defaults to -2.
+#' @param min.FRiP.z Minimum z-score from fraction reads in peaks for good cells. Defaults to -2.
+#' @param verbose Default to False. Set to TRUE to progress messages. 
+#' @export
+#'
+isCell <- function(obj, 
+                   num.test=20000, 
+                   num.tn5=NULL, 
+                   num.ref=1000, 
+                   background.cutoff=100,
+                   min.pTSS=0.2, 
+                   min.FRiP=0.2, 
+                   min.pTSS.z= -2, 
+                   min.FRiP.z= -2, 
+                   verbose=F){
+    
+    # hidden functions
+    .RowVar <- function(x) {
+        spm <- t(x)
+        stopifnot(methods::is(spm, "dgCMatrix"))
+        ans <- sapply(base::seq.int(spm@Dim[2]), function(j) {
+            if (spm@p[j + 1] == spm@p[j]) {
+                return(0)
+            }
+            mean <- base::sum(spm@x[(spm@p[j] + 1):spm@p[j +
+                                                             1]])/spm@Dim[1]
+            sum((spm@x[(spm@p[j] + 1):spm@p[j + 1]] - mean)^2) +
+                mean^2 * (spm@Dim[1] - (spm@p[j + 1] - spm@p[j]))
+        })/(spm@Dim[1] - 1)
+        names(ans) <- spm@Dimnames[[2]]
+        ans
+    }
+    
+    # select same cells 
+    shared <- intersect(rownames(obj$meta), colnames(obj$counts))
+    obj$counts <- obj$counts[,shared]
+    obj$meta <- obj$meta[shared,]
+    
+    # generate stats
+    obj$meta <- obj$meta[order(obj$meta$nSites, decreasing=T),]
+    obj$meta$pTSS <- obj$meta$tss/obj$meta$total
+    obj$meta$FRiP <- obj$meta$acrs/obj$meta$total
+    obj$meta$pOrg <- obj$meta$ptmt/obj$meta$total
+    
+    # set initial thresholds
+    if(verbose){message(" - setting filters")}
+    obj$meta$tss_z <- (obj$meta$pTSS - mean(obj$meta$pTSS))/sd(obj$meta$pTSS)
+    obj$meta$acr_z <- (obj$meta$FRiP - mean(obj$meta$FRiP))/sd(obj$meta$FRiP)
+    obj$meta$sites_z <- (log10(obj$meta$nSites) - mean(log10(obj$meta$nSites)))/sd(log10(obj$meta$nSites))
+    obj$meta$tss_z[is.na(obj$meta$tss_z)] <- -10
+    obj$meta$acr_z[is.na(obj$meta$acr_z)] <- -10
+    obj$meta$sites_z[is.na(obj$meta$sites_z)] <- -10 
+    obj$meta$qc_check <- ifelse(obj$meta$tss_z < min.pTSS.z | obj$meta$pTSS < min.pTSS, 0, 
+                              ifelse(obj$meta$acr_z < min.FRiP.z | obj$meta$FRiP < min.FRiP, 0, 1))
+    
+    # cells to test
+    if(is.null(num.test)){
+        test.set <- subset(obj$meta, obj$meta$total > num.tn5)
+    }else{
+        test.set <- head(obj$meta[order(obj$meta$total, decreasing=T),], n=num.test)
+    }
+    
+    # select good cell reference
+    if(verbose){message(" - parsing initial boundaries")}
+    good.cells <- rownames(subset(obj$meta, obj$meta$qc_check==1))
+    if(length(good.cells) > num.ref){
+        good.cells <- head(good.cells, n=num.ref)
+    }
+    
+    # select bad cell reference
+    bad.cells <- rownames(subset(obj$meta, obj$meta$qc_check==0 & obj$meta$total < background.cutoff))
+    
+    # construct references
+    gg <- obj$counts[,colnames(obj$counts) %in% good.cells]
+    bb <- obj$counts[,colnames(obj$counts) %in% bad.cells]
+    
+    # select sites to use 
+    sites <- Matrix::rowMeans(gg > 0)
+    sites <- sites[order(sites, decreasing=T)]
+    num.sites <- min(c(max(obj$meta$nSites), 250000))
+    if(length(sites) < num.sites){
+        num.sites <- length(sites)
+    }
+    
+    # filter reference matrices
+    gg <- gg[names(sites)[1:num.sites],]
+    gg <- gg[,Matrix::colSums(gg) > 0]
+    bb <- bb[rownames(gg),]
+    bb <- bb[,Matrix::colSums(bb) > 0]
+    shared <- intersect(rownames(gg), rownames(bb))
+    gg <- gg[shared,]
+    bb <- bb[shared,]
+    gg <- gg[,Matrix::colSums(gg) > 0]
+    bb <- bb[,Matrix::colSums(bb) > 0]
+    
+    # normalize references
+    if(verbose){message(" - normalizing distributions and creating references")}
+    sub.counts <- obj$counts[,c(colnames(gg), colnames(bb), rownames(test.set))]
+    sub.counts <- sub.counts[rownames(gg),]
+    all.res <- tfidf(list(counts=sub.counts), doL2=T)$residuals
+    bb.norm <- all.res[,colnames(bb)]
+    gg.norm <- all.res[,colnames(gg)]
+    test.tfidf <- all.res[,rownames(test.set)]
+    
+    # pick sites
+    if(verbose){message(" - performing feature selection (this step is a bottle-neck and may take a while to complete)")}
+    res.ave <- Matrix::rowMeans(gg.norm)
+    res.res <- .RowVar(gg.norm)
+    resis <- res.res/res.ave
+    #resis <- loess(res.res~res.ave)$residuals
+    names(resis) <- rownames(gg.norm)
+    resis <- resis[order(resis, decreasing=T)]
+    top.sites <- names(resis)[1:100000]
+    bb.norm <- bb.norm[top.sites,]
+    gg.norm <- gg.norm[top.sites,]
+    test.tfidf <- test.tfidf[top.sites,]
+    
+    # make bulk references, l2 norm
+    bad.ref <- Matrix::rowMeans(bb.norm)
+    good.ref <- Matrix::rowMeans(gg.norm)
+    bad.ref <- Matrix(matrix(c(bad.ref / (sqrt(sum(bad.ref^2)))), ncol=1), sparse=T)
+    good.ref <- Matrix(matrix(c(good.ref / (sqrt(sum(good.ref^2)))),ncol=1), sparse=T)
+    ref <- cbind(bad.ref, good.ref)
+    colnames(ref) <- c("background", "cellbulk")
+    
+    # prep test cells for comparisons 
+    if(verbose){message(" - estimating correlations")}
+    ref.cor <- corSparse(test.tfidf, ref)
+    ref.cor <- as.data.frame(ref.cor)
+    colnames(ref.cor) <- c("background", "cellbulk")
+    rownames(ref.cor) <- colnames(test.tfidf)
+    ref.cor$is_cell <- ifelse(ref.cor$cellbulk > ref.cor$background, 1, 0)
+    
+    # update meta data
+    shared <- intersect(rownames(obj$meta), rownames(ref.cor))
+    meta <- obj$meta[shared,]
+    ref.cor <- ref.cor[shared,]
+    updated.meta <- cbind(meta, ref.cor)
+    nonrefs <- obj$meta[!rownames(obj$meta) %in% rownames(ref.cor),]
+    nonrefs$background <- NA
+    nonrefs$cellbulk <- NA
+    nonrefs$is_cell <- NA
+    updated <- rbind(updated.meta, nonrefs)
+    
+    # return
+    obj$meta <- updated
+    return(obj)
+    
+    
+}
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
 #' generateMatrix
 #'
 #' This function generates the sparse matrix from equally sized genomic bins or ACRs.
@@ -750,7 +923,7 @@ generateMatrix <- function(obj,
 ###################################################################################################
 #' writeReadME
 #'
-#' This function generates a README of the output files from quality control
+#' This function generates obj README of the output files from quality control
 #'
 #' @param fileID Character string specifying the output file name.
 #'
@@ -769,22 +942,22 @@ writeReadME <- function(fileID="QC_README"){
                  "suppressWarnings(suppressMessages(library(GenomicRanges)))",
                  "suppressWarnings(suppressMessages(library(GenomicFeatures)))",
                  "",
-                 'a <- readRDS("youroutput.rds")',
+                 'obj <- readRDS("youroutput.rds")',
                  "",
-                 "# a$bed contains the Tn5 insertion and barcode data",
-                 "# a$gff contains the annotation information",
-                 "# a$acr contains the narrowPeaks bulk ACRs output from MACS2 (also found in the directory called macs2_temp)",
-                 "# a$meta contains the raw barcode meta information (no barcode filtering)",
-                 "# a$meta.v1 contains the read depth filtered barcodes (step1)",
-                 "# a$meta.v2 contains the TSS proportion filtered barcodes (step2)",
-                 "# a$meta.v3 contains the FRiP filtered barcodes (step3)",
+                 "# obj$bed contains the Tn5 insertion and barcode data",
+                 "# obj$gff contains the annotation information",
+                 "# obj$acr contains the narrowPeaks bulk ACRs output from MACS2 (also found in the directory called macs2_temp)",
+                 "# obj$meta contains the raw barcode meta information (no barcode filtering)",
+                 "# obj$meta.v1 contains the read depth filtered barcodes (step1)",
+                 "# obj$meta.v2 contains the TSS proportion filtered barcodes (step2)",
+                 "# obj$meta.v3 contains the FRiP filtered barcodes (step3)",
                  "",
-                 '# to view these data, you can use commands on the slots, such as head(a$bed)',
+                 '# to view these data, you can use commands on the slots, such as head(obj$bed)',
                  "",
                  "",
                  "",
                  "#########################################################################################################",
-                 "# A sparse matrix is also generated for further analysis (file_bins.sparse), compatiable with Socrates.",
+                 "# obj sparse matrix is also generated for further analysis (file_bins.sparse), compatiable with Socrates.",
                  "# The format of this matrix is as follows:",
                  "",
                  "# Column 1 = window/ACR coordinates",
@@ -794,9 +967,9 @@ writeReadME <- function(fileID="QC_README"){
                  "# these matrices can be loaded in R with the package 'Matrix':",
                  "",
                  'library(Matrix)',
-                 'a <- read.table("file_bins.sparse")',
-                 'a <- sparseMatrix(i=as.numeric(a$V1), j=as.numeric(a$V2), x=as.numeric(a$V3), dimnames=list(levels(a$V1),levels(a$V2)))',
-                 'head(a[,1:5])'), fileConn)
+                 'obj <- read.table("file_bins.sparse")',
+                 'obj <- sparseMatrix(i=as.numeric(obj$V1), j=as.numeric(obj$V2), x=as.numeric(obj$V3), dimnames=list(levels(obj$V1),levels(obj$V2)))',
+                 'head(obj[,1:5])'), fileConn)
     close(fileConn)
 
 
@@ -810,8 +983,8 @@ writeReadME <- function(fileID="QC_README"){
 #' mergeQCdataRDS
 #'
 #' This function merges QC data RDS objects. Useful for joining replicates and multiple samples
-#' for downstream analysis. A simple way to aggregate multiple samples into a single socrates
-#' object is to move all the samples of interest into a directory and load the paths with
+#' for downstream analysis. obj simple way to aggregate multiple samples into obj single socrates
+#' object is to move all the samples of interest into obj directory and load the paths with
 #' list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for each of
 #' the objects. The easiest way to ensure mergeable objects is to use the same window size (instead
 #' of ACRs) for the function `generateMatrix`. Use this function for rds objects saved from
@@ -917,8 +1090,8 @@ mergeQCdataRDS <- function(filenames){
 #' mergeSocratesRDS
 #'
 #' This function merges Socrates data RDS objects. Useful for joining replicates and multiple samples
-#' for downstream analysis. A simple way to aggregate multiple samples into a single socrates
-#' object is to move all the samples of interest into a directory and load the paths with
+#' for downstream analysis. obj simple way to aggregate multiple samples into obj single socrates
+#' object is to move all the samples of interest into obj directory and load the paths with
 #' list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for generating
 #' the sparse matrices. The easiest way to ensure mergeable objects is to use the same window size
 #' (instead of ACRs) for the function `generateMatrix` from each sample.
@@ -940,7 +1113,7 @@ mergeQCdataRDS <- function(filenames){
 #' # check data structure
 #' > str(merged.obj)
 #'
-#' # one can also load using a list of socrates objects.
+#' # one can also load using obj list of socrates objects.
 #' > all.soc.obj <- list(rep1=soc.obj1, rep22=soc.obj2)
 #' > merged.obj <- mergeSocratesRDS(obj.list=all.soc.obj)
 #'
