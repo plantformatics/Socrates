@@ -27,7 +27,7 @@ Required.}
 cellranger-atac count. Defaults to FALSE.}
 }
 \description{
-This function loads a 5 column BED file specifying the single-bp Tn5 integration sites.
+This function loads obj 5 column BED file specifying the single-bp Tn5 integration sites.
 The file should not have any headers, with the following format:
 chromosome, start, end, barcode, strand
 }

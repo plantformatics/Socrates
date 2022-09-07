@@ -10,5 +10,5 @@ writeReadME(fileID = "QC_README")
 \item{fileID}{Character string specifying the output file name.}
 }
 \description{
-This function generates a README of the output files from quality control
+This function generates obj README of the output files from quality control
 }

@@ -13,8 +13,8 @@ mergeSocratesRDS(filenames = NULL, obj.list = NULL)
 }
 \description{
 This function merges Socrates data RDS objects. Useful for joining replicates and multiple samples
-for downstream analysis. A simple way to aggregate multiple samples into a single socrates
-object is to move all the samples of interest into a directory and load the paths with
+for downstream analysis. obj simple way to aggregate multiple samples into obj single socrates
+object is to move all the samples of interest into obj directory and load the paths with
 list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for generating
 the sparse matrices. The easiest way to ensure mergeable objects is to use the same window size
 (instead of ACRs) for the function \code{generateMatrix} from each sample.
@@ -35,7 +35,7 @@ merged.obj <- mergeSocratesRDS(filenames=input.files)
 str(merged.obj)
 }
 
-\section{one can also load using a list of socrates objects.}{
+\section{one can also load using obj list of socrates objects.}{
 all.soc.obj <- list(rep1=soc.obj1, rep22=soc.obj2)merged.obj <- mergeSocratesRDS(obj.list=all.soc.obj)
 }
 

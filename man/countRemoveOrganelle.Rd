@@ -14,7 +14,7 @@ countRemoveOrganelle(obj, org_scaffolds = NULL, remove_reads = FALSE)
 \item{remove_reads}{Logical of whether to remove reads from the BED file or not. Defaults to TRUE}
 }
 \description{
-This functions takes in an the Tn5 bed file, as well as a vector
+This functions takes in an the Tn5 bed file, as well as obj vector
 which contains organelle scaffolds, and identifies Tn5 integrations events which occured
 in organelles. These reads are then assigned to the object slot PtMT. Additional parameters
 allow for the removal of these reads so they don't interfere with ACR calling downstream.

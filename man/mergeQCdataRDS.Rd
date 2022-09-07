@@ -11,8 +11,8 @@ mergeQCdataRDS(filenames)
 }
 \description{
 This function merges QC data RDS objects. Useful for joining replicates and multiple samples
-for downstream analysis. A simple way to aggregate multiple samples into a single socrates
-object is to move all the samples of interest into a directory and load the paths with
+for downstream analysis. obj simple way to aggregate multiple samples into obj single socrates
+object is to move all the samples of interest into obj directory and load the paths with
 list.files. IMPORTANT - only merge RDS objects where the same bins/peaks were used for each of
 the objects. The easiest way to ensure mergeable objects is to use the same window size (instead
 of ACRs) for the function \code{generateMatrix}. Use this function for rds objects saved from

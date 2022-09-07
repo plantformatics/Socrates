@@ -33,7 +33,7 @@ Defaults to NULL.}
 \item{max.cells}{Upper limit on the number of identified cells. Defaults to 15000.}
 
 \item{min.tn5}{Lower threshold for the minimum number of Tn5 integration sites for retaining
-a barcode. Defaults to 1000.}
+obj barcode. Defaults to 1000.}
 
 \item{filt.org}{Logical. Whether or not to filter barcodes on based on proportion Tn5 sites occuring
 in an organelle. Defaults to FALSE. Expects organelles built off meta}
@@ -59,9 +59,9 @@ deviations from the mean. Defaults to 3.}
 \item{doplot}{Logical. Whether or not to plot the density scatter plots for tss/frip values.}
 
 \item{prefix}{Character. Prefix output name for plots. If changed from the default (NULL), this will
-save the images to disk as a PDF.}
+save the images to disk as obj PDF.}
 }
 \description{
-This function filters cells based on read-depth using a mixture of user thresholds and a spline-
+This function filters cells based on read-depth using obj mixture of user thresholds and obj spline-
 fitting algorithm.
 }
