@@ -860,6 +860,9 @@ isCell <- function(obj,
 #' this argument is over-ridden.
 #' @param peaks Logical. If TRUE, use ACRs to build sparse matrix instead of genomic tiles.
 #' Default is set to FALSE.
+#' @param blacklist in bed format. If given removes black list regions from either peaks or 
+#' generated bins. Default is set to null.
+#' Default is set to FALSE.
 #' @param verbose Logical. Whether or not to print progress.
 #'
 #' @rdname generateMatrix
@@ -869,7 +872,9 @@ generateMatrix <- function(obj,
                            filtered=T,
                            windows=1000,
                            peaks=FALSE,
+                           blacklist=NULL,
                            verbose=T){
+
 
     # convert tn5 bed to Granges
     tn5.gr <- GRanges(seqnames=as.character(obj$bed$V1),
@@ -877,6 +882,19 @@ generateMatrix <- function(obj,
                                      end=as.numeric(obj$bed$V3)),
                       strand=as.character(obj$bed$V5),
                       names=as.character(obj$bed$V4))
+    
+    
+    
+    if(is_empty(blacklist) != TRUE) {
+        blacklist_r <- read.table(as.character(blacklist))
+        
+        blacklist.gr <- GRanges(seqnames=as.character(blacklist_r$V1),
+                          ranges=IRanges(start=as.numeric(blacklist_r$V2),
+                                         end=as.numeric(blacklist_r$V3)),
+                          names=as.character(blacklist_r$V4))
+    } else {
+        blacklist.gr <- NULL
+    }    
 
     # use filtered barcodes?
     if(filtered){
@@ -885,15 +903,29 @@ generateMatrix <- function(obj,
         use <- obj$meta
     }
 
+
     # generate intervals
     if(!peaks){
+
 
         # build bins from specified tile length
         chr.seq.lengths <- as.numeric(obj$chr$V2)
         names(chr.seq.lengths) <- obj$chr$V1
         intervals <- tileGenome(chr.seq.lengths, tilewidth=windows, cut.last.tile.in.chrom=TRUE)
-        regions <- as.data.frame(intervals)
-        regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+            
+        #Remove if black list included
+        if (is_empty(blacklist.gr) != TRUE){
+            
+            intervals <- setdiff(intervals, blacklist.gr, ignore.strand=TRUE) 
+            regions <- as.data.frame(intervals)
+            regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+            
+            
+        }else{
+            regions <- as.data.frame(intervals)
+            regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+        }
+
 
     }else{
 
@@ -901,9 +933,17 @@ generateMatrix <- function(obj,
         intervals <- GRanges(seqnames=as.character(obj$acr$V1),
                              ranges=IRanges(start=as.numeric(obj$acr$V2),
                                             end=as.numeric(obj$acr$V3)))
-        regions <- as.data.frame(intervals)
-        regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+        
+        if (is_empty(blacklist.gr) != TRUE){    
+            intervals <- setdiff(intervals, blacklist.gr, ignore.strand=TRUE) 
+            regions <- as.data.frame(intervals)
+            regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+        }else{
+            regions <- as.data.frame(intervals)
+            regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
+        }
     }
+
 
     # get intervals overlapping Tn5 sites by barcode
     hits <- as.data.frame(findOverlaps(tn5.gr, intervals))
@@ -912,10 +952,14 @@ generateMatrix <- function(obj,
     df$binary <- 1
     colnames(df) <- c("V1","V2","V3")
 
+
     # return
     obj$counts <- df
     return(obj)
 }
+
+
+
 
 
 ###################################################################################################
