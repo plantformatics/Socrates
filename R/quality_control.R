@@ -132,7 +132,6 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
 countRemoveOrganelle <- function(obj,
                                  org_scaffolds=NULL,
                                  remove_reads=FALSE){
-
     if (missing(org_scaffolds)) {
 
         message("... No Organelles Given, Returning All reads")
@@ -145,7 +144,7 @@ countRemoveOrganelle <- function(obj,
         organelle = org_scaffolds
 
         #ID regions within the organelle
-        org_group <- obj$bed$V1 %in% organelle
+        org_group <- (obj$bed$V1 %in% organelle)
 
         if (sum(org_group) == 0) {
             message("No organeller reads identified ...")
@@ -158,7 +157,7 @@ countRemoveOrganelle <- function(obj,
         organelle_sites <-  obj$bed[org_group, ]
 
         #Count the number of organelle reads present per barcode
-        count_ID_number <- table(organelle_sites$V4)
+        count_ID_number <- table(orgaelle_sites$V4)
 
         #Gather All Names to ID read names missing
         take_all_names <- unique(obj$bed$V4)
@@ -178,7 +177,7 @@ countRemoveOrganelle <- function(obj,
         if (remove_reads == TRUE){
 
             #Subsample bed so organelle reads do not interfere with ACR calls
-            keep_bed_group <- ! obj$bed$V1 %in% organelle
+            keep_bed_group <- c(obj$bed$V1 %notin% organelle)
             final_bed <- subset(obj$bed, keep_bed_group)
             obj$bed <- final_bed
             obj$PtMt <- zz
@@ -195,7 +194,8 @@ countRemoveOrganelle <- function(obj,
     }
 
     return(obj)
-}
+
+    }
 
 
 
@@ -557,6 +557,7 @@ findCells <- function(obj,
         n.cells = nrow(out_meta)
         if(doplot){
             hist(x$ptmt.ratio, xlim=c(0,1),
+                 breaks=102,
                  xlab="Organelle Ratio",
                  ylab="Counts",
                  main=main)
@@ -717,16 +718,33 @@ isCell <- function(obj,
             }
             mean <- base::sum(spm@x[(spm@p[j] + 1):spm@p[j +
                                                              1]])/spm@Dim[1]
-            sum((spm@x[(spm@p[j] + 1):spm@p[j + 1]] - mean)^2) +
+         
+   sum((spm@x[(spm@p[j] + 1):spm@p[j + 1]] - mean)^2) +
                 mean^2 * (spm@Dim[1] - (spm@p[j + 1] - spm@p[j]))
         })/(spm@Dim[1] - 1)
         names(ans) <- spm@Dimnames[[2]]
         ans
     }
     
+    sparse_count_matrix <- obj$counts
+    # make sure bins/cells are factors
+    if(verbose){message(" - converting triplet format to sparseMatrix")}
+    sparse_count_matrix$V1 <- factor(sparse_count_matrix$V1)
+    sparse_count_matrix$V2 <- factor(sparse_count_matrix$V2)
+
+
+    # convert to sparseMatrix format
+    sparse_count_matrix <- Matrix::sparseMatrix(i=as.numeric(sparse_count_matrix$V1),
+                              j=as.numeric(sparse_count_matrix$V2),
+                              x=as.numeric(sparse_count_matrix$V3),
+                             dimnames=list(levels(sparse_count_matrix$V1),levels(sparse_count_matrix$V2)))
+
+
+    
+    
     # select same cells 
-    shared <- intersect(rownames(obj$meta), colnames(obj$counts))
-    obj$counts <- obj$counts[,shared]
+    shared <- intersect(rownames(obj$meta), colnames(sparse_count_matrix))
+    sparse_count_matrix <- sparse_count_matrix[,shared]
     obj$meta <- obj$meta[shared,]
     
     # generate stats
@@ -764,8 +782,8 @@ isCell <- function(obj,
     bad.cells <- rownames(subset(obj$meta, obj$meta$qc_check==0 & obj$meta$total < background.cutoff))
     
     # construct references
-    gg <- obj$counts[,colnames(obj$counts) %in% good.cells]
-    bb <- obj$counts[,colnames(obj$counts) %in% bad.cells]
+    gg <- sparse_count_matrix[,colnames(sparse_count_matrix) %in% good.cells]
+    bb <- sparse_count_matrix[,colnames(sparse_count_matrix) %in% bad.cells]
     
     # select sites to use 
     sites <- Matrix::rowMeans(gg > 0)
@@ -788,12 +806,21 @@ isCell <- function(obj,
     
     # normalize references
     if(verbose){message(" - normalizing distributions and creating references")}
-    sub.counts <- obj$counts[,c(colnames(gg), colnames(bb), rownames(test.set))]
+    #precent duplicate cells from being in both bad sample and test.set
+    grab_cells <- unique(c(colnames(gg), colnames(bb), rownames(test.set)))
+    sub.counts <- sparse_count_matrix[,grab_cells]
     sub.counts <- sub.counts[rownames(gg),]
+
+    #Remove cells if they have no integrations around selected sites (Functionally cells with no data)
+    # Addeed 9/27/2022 PM 
+    cells <- Matrix::colSums(sub.counts > 0 )
+    usable_cells <- cells[cells > 0]
+    sub.counts <- sub.counts[,names(usable_cells)]
+    
     all.res <- tfidf(list(counts=sub.counts), doL2=T)$residuals
     bb.norm <- all.res[,colnames(bb)]
     gg.norm <- all.res[,colnames(gg)]
-    test.tfidf <- all.res[,rownames(test.set)]
+    test.tfidf <- all.res[,names(usable_cells)] 
     
     # pick sites
     if(verbose){message(" - performing feature selection (this step is a bottle-neck and may take a while to complete)")}
@@ -804,6 +831,7 @@ isCell <- function(obj,
     names(resis) <- rownames(gg.norm)
     resis <- resis[order(resis, decreasing=T)]
     top.sites <- names(resis)[1:100000]
+    print(top.sites)
     bb.norm <- bb.norm[top.sites,]
     gg.norm <- gg.norm[top.sites,]
     test.tfidf <- test.tfidf[top.sites,]
@@ -838,11 +866,7 @@ isCell <- function(obj,
     # return
     obj$meta <- updated
     return(obj)
-    
-    
-}
-
-
+} 
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
@@ -873,8 +897,8 @@ generateMatrix <- function(obj,
                            windows=1000,
                            peaks=FALSE,
                            blacklist=NULL,
+                           organelle_scaffolds = NULL,
                            verbose=T){
-
 
     # convert tn5 bed to Granges
     tn5.gr <- GRanges(seqnames=as.character(obj$bed$V1),
@@ -884,17 +908,28 @@ generateMatrix <- function(obj,
                       names=as.character(obj$bed$V4))
     
     
-    
-    if(is_empty(blacklist) != TRUE) {
-        blacklist_r <- read.table(as.character(blacklist))
+    # Remove Organell Scaffolds if given
+    if(is.null(organelle_scaffolds) == FALSE) {
         
+        tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds)
+
+    } else {
+        tn5.gr <- tn5.gr
+    }
+
+    
+    # Read in baclist if given
+    if(is.null(blacklist) == FALSE) {
+        blacklist_r <- read.table(as.character(blacklist))
+
         blacklist.gr <- GRanges(seqnames=as.character(blacklist_r$V1),
-                          ranges=IRanges(start=as.numeric(blacklist_r$V2),
+          
+                ranges=IRanges(start=as.numeric(blacklist_r$V2),
                                          end=as.numeric(blacklist_r$V3)),
                           names=as.character(blacklist_r$V4))
     } else {
         blacklist.gr <- NULL
-    }    
+    }
 
     # use filtered barcodes?
     if(filtered){
@@ -906,21 +941,20 @@ generateMatrix <- function(obj,
 
     # generate intervals
     if(!peaks){
-
-
         # build bins from specified tile length
         chr.seq.lengths <- as.numeric(obj$chr$V2)
         names(chr.seq.lengths) <- obj$chr$V1
         intervals <- tileGenome(chr.seq.lengths, tilewidth=windows, cut.last.tile.in.chrom=TRUE)
-            
+
         #Remove if black list included
-        if (is_empty(blacklist.gr) != TRUE){
-            
-            intervals <- setdiff(intervals, blacklist.gr, ignore.strand=TRUE) 
+        #Remove procedure learned from: https://www.biostars.org/p/263214/
+       if (is.null(blacklist.gr) == FALSE){
+
+            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),] 
             regions <- as.data.frame(intervals)
             regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
-            
-            
+
+
         }else{
             regions <- as.data.frame(intervals)
             regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
@@ -933,9 +967,9 @@ generateMatrix <- function(obj,
         intervals <- GRanges(seqnames=as.character(obj$acr$V1),
                              ranges=IRanges(start=as.numeric(obj$acr$V2),
                                             end=as.numeric(obj$acr$V3)))
-        
-        if (is_empty(blacklist.gr) != TRUE){    
-            intervals <- setdiff(intervals, blacklist.gr, ignore.strand=TRUE) 
+
+        if (is.null(blacklist.gr) == FALSE){
+            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),] 
             regions <- as.data.frame(intervals)
             regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
         }else{
@@ -951,12 +985,40 @@ generateMatrix <- function(obj,
     df <- df[!duplicated(df),]
     df$binary <- 1
     colnames(df) <- c("V1","V2","V3")
+    
+    
+    #9/26/2022 include for sake of calculation of isCell 
+    # make sure nSites is calculated
+    #Integration Sites
+    a <- df
+    
+    #Meta data to interset
+    b <- use
+    a$V1 <- factor(a$V1)
+    a$V2 <- factor(a$V2)
 
+    #Generate sparse matrix
+    a <- Matrix::sparseMatrix(i=as.numeric(a$V1),
+                              j=as.numeric(a$V2),
+                              x=as.numeric(a$V3),
+                              dimnames=list(levels(a$V1),levels(a$V2)))
+
+    # align barcodes
+    both <- intersect(rownames(b), colnames(a))
+    a <- a[,both]
+    b <- b[both,]
+
+    # make sure nSites is calculated
+    b$nSites   <- Matrix::colSums(a)
+    b$log10nSites <- log10(b$nSites)
 
     # return
     obj$counts <- df
-    return(obj)
-}
+    obj$meta <- b 
+
+    return(obj) 
+    
+    }
 
 
 

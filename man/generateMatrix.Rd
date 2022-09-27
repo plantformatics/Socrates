@@ -4,7 +4,15 @@
 \alias{generateMatrix}
 \title{generateMatrix}
 \usage{
-generateMatrix(obj, filtered = T, windows = 1000, peaks = FALSE, verbose = T)
+generateMatrix(
+  obj,
+  filtered = T,
+  windows = 1000,
+  peaks = FALSE,
+  blacklist = NULL,
+  organelle_scaffolds = NULL,
+  verbose = T
+)
 }
 \arguments{
 \item{obj}{Object output from findCells or buildMetaData. Required.}
@@ -15,6 +23,10 @@ generateMatrix(obj, filtered = T, windows = 1000, peaks = FALSE, verbose = T)
 this argument is over-ridden.}
 
 \item{peaks}{Logical. If TRUE, use ACRs to build sparse matrix instead of genomic tiles.
+Default is set to FALSE.}
+
+\item{blacklist}{in bed format. If given removes black list regions from either peaks or
+generated bins. Default is set to null.
 Default is set to FALSE.}
 
 \item{verbose}{Logical. Whether or not to print progress.}
