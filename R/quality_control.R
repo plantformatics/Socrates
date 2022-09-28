@@ -830,8 +830,16 @@ isCell <- function(obj,
     #resis <- loess(res.res~res.ave)$residuals
     names(resis) <- rownames(gg.norm)
     resis <- resis[order(resis, decreasing=T)]
-    top.sites <- names(resis)[1:100000]
-    print(top.sites)
+
+    #If low number of sites - set to top.sites max
+    if (length(resis) < 100000) {
+        top.sites <- names(resis)[1:length(resis)]
+    } else if (length(resis) >= 100000) {
+        top.sites <- names(resis)[1:100000]
+    } else {
+        top.sites <- names(resis)
+    }
+
     bb.norm <- bb.norm[top.sites,]
     gg.norm <- gg.norm[top.sites,]
     test.tfidf <- test.tfidf[top.sites,]
