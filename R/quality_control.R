@@ -157,7 +157,7 @@ countRemoveOrganelle <- function(obj,
         organelle_sites <-  obj$bed[org_group, ]
 
         #Count the number of organelle reads present per barcode
-        count_ID_number <- table(orgaelle_sites$V4)
+        count_ID_number <- table(organelle_sites$V4)
 
         #Gather All Names to ID read names missing
         take_all_names <- unique(obj$bed$V4)

@@ -178,11 +178,17 @@ detectDoublets <- function(obj=NULL,
     #allMat <- t(apply(allMat, 1, function(x){(x-mean(x, na.rm=T))/sd(x, na.rm=T)}))
     num.cells <- nrow(ogMat)
     rm(ogMat)
+
+    allMat.num <- allMat
+    class(allMat.num) <- "numeric"
+    ind <- apply(allMat.num, 1, function(x) all(is.na(x))) 
+    allMat.num <- allMat.num[ !ind, ]
+
     
     # run UMAP model
     message(" - Projecting to UMAP ...")
     set.seed(1)
-    proj.umap <- uwot::umap_transform(X = as.matrix(allMat),
+    proj.umap <- uwot::umap_transform(X = as.matrix(allMat.num),
                                       model = obj$UMAP_model)
     rownames(proj.umap) <- rownames(allMat)
     colnames(proj.umap) <- c("umap1", "umap2")
