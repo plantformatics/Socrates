@@ -157,7 +157,7 @@ countRemoveOrganelle <- function(obj,
         organelle_sites <-  obj$bed[org_group, ]
 
         #Count the number of organelle reads present per barcode
-        count_ID_number <- table(orgaelle_sites$V4)
+        count_ID_number <- table(organelle_sites$V4)
 
         #Gather All Names to ID read names missing
         take_all_names <- unique(obj$bed$V4)
@@ -919,7 +919,7 @@ generateMatrix <- function(obj,
     # Remove Organell Scaffolds if given
     if(is.null(organelle_scaffolds) == FALSE) {
         
-        tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds)
+        tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds, pruning.mode="coarse")
 
     } else {
         tn5.gr <- tn5.gr
