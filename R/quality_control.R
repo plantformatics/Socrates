@@ -919,7 +919,7 @@ generateMatrix <- function(obj,
     # Remove Organell Scaffolds if given
     if(is.null(organelle_scaffolds) == FALSE) {
         
-        tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds)
+        tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds, pruning.mode="coarse")
 
     } else {
         tn5.gr <- tn5.gr
