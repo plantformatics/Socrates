@@ -697,7 +697,7 @@ findCells <- function(obj,
 #' @param verbose Default to False. Set to TRUE to progress messages.
 #' @export
 #'
-isCell <- function(obj, 
+isCell <- function(obj,
                    num.test=20000,
                    num.tn5=NULL,
                    num.ref=1000,
@@ -818,9 +818,9 @@ isCell <- function(obj,
     sub.counts <- sub.counts[,names(usable_cells)]
 
     all.res <- tfidf(list(counts=sub.counts), doL2=T)$residuals
-    bb.norm <- all.res[,colnames(bb)]
-    gg.norm <- all.res[,colnames(gg)]
-    test.tfidf <- all.res[,names(usable_cells)]
+    bb.norm <- all.res[,colnames(all.res) %in% colnames(bb)]
+    gg.norm <- all.res[,colnames(all.res) %in% colnames(gg)]
+    test.tfidf <- all.res[,colnames(all.res) %in% rownames(test.set)]
 
     # pick sites
     if(verbose){message(" - performing feature selection (this step is a bottle-neck and may take a while to complete)")}
