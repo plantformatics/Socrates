@@ -18,7 +18,7 @@
 #' @param sizes Path to chromosome sizes file for downstream processing. Required.
 #' @param verbose logical. Defaults to TRUE.
 #' @param is.fragment logical. Set to TRUE if the provided BED file is the fragment.csv output from
-#' cellranger-atac count. Defaults to FALSE. 
+#' cellranger-atac count. Defaults to FALSE.
 #'
 #' @rdname loadBEDandGenomeData
 #' @export
@@ -62,11 +62,11 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
 
     }
     .convertFragment2BED <- function(csv){
-        
-        
-        
+
+
+
     }
-    
+
     # run pre-checks
     .preRunChecks(bed, ann, sizes, verbose=verbose)
 
@@ -90,16 +90,16 @@ loadBEDandGenomeData <- function(bed, ann, sizes, attribute="Parent", verbose=T,
 
     # check if input bed is obj fragment file
     if(is.fragment){
-        
+
         if(verbose){message(" - converting fragment file to single-bp resolution Tn5 insertions sites ...")}
         start.coordinates <- data.frame(V1=obj$V1, V2=(obj$V2), V3=(obj$V2+1), V4=obj$V4, V5="+")
         end.coordinates <- data.frame(V1=obj$V1, V2=(obj$V3-1), V3=obj$V3, V4=obj$V4, V5="-")
         all.coordinates <- rbind(start.coordinates, end.coordinates)
         all.coordinates <- all.coordinates[order(all.coordinates$V1, all.coordinates$V2, decreasing=F),]
         obj <- all.coordinates[!duplicated(all.coordinates),]
-        
+
     }
-    
+
     # load Gff
     gff <- suppressWarnings(suppressMessages(makeTxDbFromGFF(as.character(ann), format=anntype, dbxrefTag=attribute)))
     chrom <- read.table(as.character(sizes))
@@ -429,13 +429,13 @@ findCells <- function(obj,
                       frip.z.thresh=2,
                       doplot=F,
                       prefix=NULL){
-    
+
     # filter functions
     .filterTSS <- function(obj, min.freq=0.2, z.thresh=3, doplot=F, main=""){
-        
+
         # get meta
         x <- subset(obj$meta.v1, obj$meta.v1$total > 0)
-        
+
         # get tss props
         x$prop <- x$tss/x$total
         x$prop[is.na(x$prop)] <- 0
@@ -457,10 +457,10 @@ findCells <- function(obj,
         }
         x <- x[order(x$total, decreasing=T),]
         n.cells <- nrow(subset(x, x$tss/x$total >= thresh))
-        
+
         # if doplot is true
         if(doplot){
-            
+
             # get density
             den <- kde2d(log10(x$total), x$prop,
                          n=300, h=c(0.2, 0.05),
@@ -473,24 +473,24 @@ findCells <- function(obj,
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
             box()
         }
-        
+
         # filter
         x$prop <- NULL
         x$zscore <- NULL
         out <- subset(x, x$tss/x$total >= thresh)
-        
+
         # rename
         obj$meta.v2 <- out
-        
+
         # return
         return(obj)
-        
+
     }
     .filterFRiP <- function(obj, min.freq=0.1, z.thresh=2, doplot=F, main=""){
-        
+
         # get meta
         x <- subset(obj$meta.v2, obj$meta.v2$total > 0)
-        
+
         # get FRiP props
         x$prop <- x$acr/x$total
         x$prop[is.na(x$prop)] <- 0
@@ -512,10 +512,10 @@ findCells <- function(obj,
         }
         x <- x[order(x$total, decreasing=T),]
         n.cells <- nrow(subset(x, x$acr/x$total >= thresh))
-        
+
         # if doplot is true
         if(doplot){
-            
+
             # get density
             den <- kde2d(log10(x$total), x$prop,
                          n=300, h=c(0.2, 0.05),
@@ -528,32 +528,32 @@ findCells <- function(obj,
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
             box()
         }
-        
+
         # filter
         x$prop <- NULL
         x$zscore <- NULL
         out <- subset(x, x$acr/x$total >= thresh)
-        
+
         # rename
         obj$meta.v3 <- out
-        
+
         # return
         return(obj)
     }
     .filterOrganelle <- function(obj, cell_threshold=0.8, remove_cells=FALSE, doplot=F, main=""){
-        
+
         x <- obj$meta.v1
         x$ptmt.ratio <- x$ptmt/x$total
-        
+
         if (remove_cells == TRUE) {
             message("... Filtering Cells based of Oragnelle Reads")
             out_meta <- subset(x, x$ptmt.ratio <= cell_threshold)
-            
+
         } else {
             message("... Not Filtering Cells on Organelle Ratio")
             out_meta <- x
         }
-        
+
         n.cells = nrow(out_meta)
         if(doplot){
             hist(x$ptmt.ratio, xlim=c(0,1),
@@ -563,15 +563,15 @@ findCells <- function(obj,
                  main=main)
             abline(v=cell_threshold, col="red", lty=2, lwd=2)
             legend("topright", legend=paste("# cells = ", n.cells, sep=""), fill=NA, col=NA, border=NA)
-            
+
         }
-        
+
         #write back
         obj$meta.v1 <- out_meta
-        
+
         return(obj)
     }
-    
+
     # get meta data
     x <- obj$meta
     # order DF by total Tn5 sites
@@ -580,7 +580,7 @@ findCells <- function(obj,
     depth <- log10(x$total+1)
     df <- data.frame(rank=rank, depth=depth)
     fit <- smooth.spline(rank, depth, spar=0.1)
-    
+
     # find local minima slope
     X <- data.frame(t=seq(min(rank),max(rank),length=nrow(df)))
     Y <- predict(fit, newdata=X, deriv=1)
@@ -589,7 +589,7 @@ findCells <- function(obj,
     knee <- xvals[which.min(yvals[min.cells:max.cells])]
     cells <- which.min(yvals[min.cells:max.cells])
     reads <- (10^(min(df[1:cells,]$depth))) - 1
-    
+
     # ensure reads > min.tn5
     if(reads < min.tn5){
         reads <- min.tn5
@@ -599,7 +599,7 @@ findCells <- function(obj,
         }
         knee <- log10(cells)
     }
-    
+
     # if override spline fitting
     if(!is.null(set.tn5.cutoff)){
         reads <- set.tn5.cutoff
@@ -609,17 +609,17 @@ findCells <- function(obj,
         }
         knee <- log10(cells)
     }
-    
+
     # if number of cells less than threshold
     if(cells < min.cells){
         cells <- min.cells
         knee <- log10(cells)
     }
     reads <- 10^(depth[cells])
-    
-    
+
+
     if(filt.org == T){plot_num = 4} else {plot_num = 3}
-    
+
     # plot
     if(doplot){
         if(!is.null(prefix)){pdf(paste0(prefix,".QC_FIGURES.pdf"), width=12, height=4)}
@@ -635,16 +635,16 @@ findCells <- function(obj,
         abline(h=log10(reads), col="red", lty=2)
         legend("bottomleft", legend=paste("# cells=",cells,", # reads=",reads,sep=""), fill=NA, col=NA, border=NA)
     }
-    
+
     # append meta
     obj$meta.v1 <- head(x, n=cells)
-    
+
     message("Making Dotplot")
     # filter by Organelle
     if(filt.org == T){
         obj <- .filterOrganelle(obj, remove_cells=filt.org, cell_threshold = org.filter.thresh, doplot=doplot, main="Organelle Ratio")
     }
-    
+
     # filter by TSS
     if(filt.tss){
         obj <- .filterTSS(obj, min.freq=tss.min.freq, z.thresh=tss.z.thresh, doplot=doplot, main="% TSS")
@@ -661,8 +661,8 @@ findCells <- function(obj,
         obj$meta.v2 <- obj$meta.v1
         obj$meta.v3 <- obj$meta.v2
     }
-    
-    
+
+
     if(doplot){
         if(!is.null(prefix)){dev.off()}
     }
@@ -676,10 +676,10 @@ findCells <- function(obj,
 ###################################################################################################
 #' isCell
 #'
-#' This function compares each barcode to obj background and cell bulk reference to identify 
+#' This function compares each barcode to obj background and cell bulk reference to identify
 #' barcodes representing ambient DNA or broken nuclei. Three columns are added to the metadata:
 #' background, cellbulk, is_cell, which reflect the correlation of the cell's chromatin profile with
-#' the background reference, the correlation with the predicted cellbulk reference, and whether a 
+#' the background reference, the correlation with the predicted cellbulk reference, and whether a
 #' barcode is predicted to be a cell (1 = cell, 0 = background noise).
 #'
 #' @importFrom qlcMatrix corSparse
@@ -694,20 +694,20 @@ findCells <- function(obj,
 #' @param min.FRiP Minimum fraction reads in peaks for good cells. Defaults to 0.2.
 #' @param min.pTSS.z Minimum z-score from per cent TSS for good cells. Defaults to -2.
 #' @param min.FRiP.z Minimum z-score from fraction reads in peaks for good cells. Defaults to -2.
-#' @param verbose Default to False. Set to TRUE to progress messages. 
+#' @param verbose Default to False. Set to TRUE to progress messages.
 #' @export
 #'
 isCell <- function(obj, 
-                   num.test=20000, 
-                   num.tn5=NULL, 
-                   num.ref=1000, 
+                   num.test=20000,
+                   num.tn5=NULL,
+                   num.ref=1000,
                    background.cutoff=100,
-                   min.pTSS=0.2, 
-                   min.FRiP=0.2, 
-                   min.pTSS.z= -2, 
-                   min.FRiP.z= -2, 
+                   min.pTSS=0.2,
+                   min.FRiP=0.2,
+                   min.pTSS.z= -2,
+                   min.FRiP.z= -2,
                    verbose=F){
-    
+
     # hidden functions
     .RowVar <- function(x) {
         spm <- t(x)
@@ -718,14 +718,14 @@ isCell <- function(obj,
             }
             mean <- base::sum(spm@x[(spm@p[j] + 1):spm@p[j +
                                                              1]])/spm@Dim[1]
-         
+
    sum((spm@x[(spm@p[j] + 1):spm@p[j + 1]] - mean)^2) +
                 mean^2 * (spm@Dim[1] - (spm@p[j + 1] - spm@p[j]))
         })/(spm@Dim[1] - 1)
         names(ans) <- spm@Dimnames[[2]]
         ans
     }
-    
+
     sparse_count_matrix <- obj$counts
     # make sure bins/cells are factors
     if(verbose){message(" - converting triplet format to sparseMatrix")}
@@ -740,19 +740,19 @@ isCell <- function(obj,
                              dimnames=list(levels(sparse_count_matrix$V1),levels(sparse_count_matrix$V2)))
 
 
-    
-    
-    # select same cells 
+
+
+    # select same cells
     shared <- intersect(rownames(obj$meta), colnames(sparse_count_matrix))
     sparse_count_matrix <- sparse_count_matrix[,shared]
     obj$meta <- obj$meta[shared,]
-    
+
     # generate stats
     obj$meta <- obj$meta[order(obj$meta$nSites, decreasing=T),]
     obj$meta$pTSS <- obj$meta$tss/obj$meta$total
     obj$meta$FRiP <- obj$meta$acrs/obj$meta$total
     obj$meta$pOrg <- obj$meta$ptmt/obj$meta$total
-    
+
     # set initial thresholds
     if(verbose){message(" - setting filters")}
     obj$meta$tss_z <- (obj$meta$pTSS - mean(obj$meta$pTSS))/sd(obj$meta$pTSS)
@@ -760,39 +760,39 @@ isCell <- function(obj,
     obj$meta$sites_z <- (log10(obj$meta$nSites) - mean(log10(obj$meta$nSites)))/sd(log10(obj$meta$nSites))
     obj$meta$tss_z[is.na(obj$meta$tss_z)] <- -10
     obj$meta$acr_z[is.na(obj$meta$acr_z)] <- -10
-    obj$meta$sites_z[is.na(obj$meta$sites_z)] <- -10 
-    obj$meta$qc_check <- ifelse(obj$meta$tss_z < min.pTSS.z | obj$meta$pTSS < min.pTSS, 0, 
+    obj$meta$sites_z[is.na(obj$meta$sites_z)] <- -10
+    obj$meta$qc_check <- ifelse(obj$meta$tss_z < min.pTSS.z | obj$meta$pTSS < min.pTSS, 0,
                               ifelse(obj$meta$acr_z < min.FRiP.z | obj$meta$FRiP < min.FRiP, 0, 1))
-    
+
     # cells to test
     if(is.null(num.test)){
         test.set <- subset(obj$meta, obj$meta$total > num.tn5)
     }else{
         test.set <- head(obj$meta[order(obj$meta$total, decreasing=T),], n=num.test)
     }
-    
+
     # select good cell reference
     if(verbose){message(" - parsing initial boundaries")}
     good.cells <- rownames(subset(obj$meta, obj$meta$qc_check==1))
     if(length(good.cells) > num.ref){
         good.cells <- head(good.cells, n=num.ref)
     }
-    
+
     # select bad cell reference
     bad.cells <- rownames(subset(obj$meta, obj$meta$qc_check==0 & obj$meta$total < background.cutoff))
-    
+
     # construct references
     gg <- sparse_count_matrix[,colnames(sparse_count_matrix) %in% good.cells]
     bb <- sparse_count_matrix[,colnames(sparse_count_matrix) %in% bad.cells]
-    
-    # select sites to use 
+
+    # select sites to use
     sites <- Matrix::rowMeans(gg > 0)
     sites <- sites[order(sites, decreasing=T)]
     num.sites <- min(c(max(obj$meta$nSites), 250000))
     if(length(sites) < num.sites){
         num.sites <- length(sites)
     }
-    
+
     # filter reference matrices
     gg <- gg[names(sites)[1:num.sites],]
     gg <- gg[,Matrix::colSums(gg) > 0]
@@ -803,7 +803,7 @@ isCell <- function(obj,
     bb <- bb[shared,]
     gg <- gg[,Matrix::colSums(gg) > 0]
     bb <- bb[,Matrix::colSums(bb) > 0]
-    
+
     # normalize references
     if(verbose){message(" - normalizing distributions and creating references")}
     #precent duplicate cells from being in both bad sample and test.set
@@ -812,16 +812,16 @@ isCell <- function(obj,
     sub.counts <- sub.counts[rownames(gg),]
 
     #Remove cells if they have no integrations around selected sites (Functionally cells with no data)
-    # Addeed 9/27/2022 PM 
+    # Addeed 9/27/2022 PM
     cells <- Matrix::colSums(sub.counts > 0 )
     usable_cells <- cells[cells > 0]
     sub.counts <- sub.counts[,names(usable_cells)]
-    
+
     all.res <- tfidf(list(counts=sub.counts), doL2=T)$residuals
     bb.norm <- all.res[,colnames(bb)]
     gg.norm <- all.res[,colnames(gg)]
-    test.tfidf <- all.res[,names(usable_cells)] 
-    
+    test.tfidf <- all.res[,names(usable_cells)]
+
     # pick sites
     if(verbose){message(" - performing feature selection (this step is a bottle-neck and may take a while to complete)")}
     res.ave <- Matrix::rowMeans(gg.norm)
@@ -843,7 +843,7 @@ isCell <- function(obj,
     bb.norm <- bb.norm[top.sites,]
     gg.norm <- gg.norm[top.sites,]
     test.tfidf <- test.tfidf[top.sites,]
-    
+
     # make bulk references, l2 norm
     bad.ref <- Matrix::rowMeans(bb.norm)
     good.ref <- Matrix::rowMeans(gg.norm)
@@ -851,15 +851,15 @@ isCell <- function(obj,
     good.ref <- Matrix(matrix(c(good.ref / (sqrt(sum(good.ref^2)))),ncol=1), sparse=T)
     ref <- cbind(bad.ref, good.ref)
     colnames(ref) <- c("background", "cellbulk")
-    
-    # prep test cells for comparisons 
+
+    # prep test cells for comparisons
     if(verbose){message(" - estimating correlations")}
     ref.cor <- corSparse(test.tfidf, ref)
     ref.cor <- as.data.frame(ref.cor)
     colnames(ref.cor) <- c("background", "cellbulk")
     rownames(ref.cor) <- colnames(test.tfidf)
     ref.cor$is_cell <- ifelse(ref.cor$cellbulk > ref.cor$background, 1, 0)
-    
+
     # update meta data
     shared <- intersect(rownames(obj$meta), rownames(ref.cor))
     meta <- obj$meta[shared,]
@@ -870,11 +870,11 @@ isCell <- function(obj,
     nonrefs$cellbulk <- NA
     nonrefs$is_cell <- NA
     updated <- rbind(updated.meta, nonrefs)
-    
+
     # return
     obj$meta <- updated
     return(obj)
-} 
+}
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
@@ -892,7 +892,7 @@ isCell <- function(obj,
 #' this argument is over-ridden.
 #' @param peaks Logical. If TRUE, use ACRs to build sparse matrix instead of genomic tiles.
 #' Default is set to FALSE.
-#' @param blacklist in bed format. If given removes black list regions from either peaks or 
+#' @param blacklist in bed format. If given removes black list regions from either peaks or
 #' generated bins. Default is set to null.
 #' Default is set to FALSE.
 #' @param verbose Logical. Whether or not to print progress.
@@ -914,24 +914,24 @@ generateMatrix <- function(obj,
                                      end=as.numeric(obj$bed$V3)),
                       strand=as.character(obj$bed$V5),
                       names=as.character(obj$bed$V4))
-    
-    
+
+
     # Remove Organell Scaffolds if given
     if(is.null(organelle_scaffolds) == FALSE) {
-        
+
         tn5.gr <- dropSeqlevels(tn5.gr, organelle_scaffolds, pruning.mode="coarse")
 
     } else {
         tn5.gr <- tn5.gr
     }
 
-    
+
     # Read in baclist if given
     if(is.null(blacklist) == FALSE) {
         blacklist_r <- read.table(as.character(blacklist))
 
         blacklist.gr <- GRanges(seqnames=as.character(blacklist_r$V1),
-          
+
                 ranges=IRanges(start=as.numeric(blacklist_r$V2),
                                          end=as.numeric(blacklist_r$V3)),
                           names=as.character(blacklist_r$V4))
@@ -958,7 +958,7 @@ generateMatrix <- function(obj,
         #Remove procedure learned from: https://www.biostars.org/p/263214/
        if (is.null(blacklist.gr) == FALSE){
 
-            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),] 
+            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),]
             regions <- as.data.frame(intervals)
             regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
 
@@ -977,7 +977,7 @@ generateMatrix <- function(obj,
                                             end=as.numeric(obj$acr$V3)))
 
         if (is.null(blacklist.gr) == FALSE){
-            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),] 
+            intervals <- intervals[-queryHits(findOverlaps(intervals, blacklist.gr, type="any")),]
             regions <- as.data.frame(intervals)
             regions <- paste(regions$seqnames, regions$start, regions$end, sep="_")
         }else{
@@ -993,13 +993,13 @@ generateMatrix <- function(obj,
     df <- df[!duplicated(df),]
     df$binary <- 1
     colnames(df) <- c("V1","V2","V3")
-    
-    
-    #9/26/2022 include for sake of calculation of isCell 
+
+
+    #9/26/2022 include for sake of calculation of isCell
     # make sure nSites is calculated
     #Integration Sites
     a <- df
-    
+
     #Meta data to interset
     b <- use
     a$V1 <- factor(a$V1)
@@ -1022,10 +1022,10 @@ generateMatrix <- function(obj,
 
     # return
     obj$counts <- df
-    obj$meta <- b 
+    obj$meta <- b
 
-    return(obj) 
-    
+    return(obj)
+
     }
 
 
@@ -1308,6 +1308,3 @@ mergeSocratesRDS <- function(filenames=NULL, obj.list=NULL){
     return(m.obj)
 
 }
-
-
-
