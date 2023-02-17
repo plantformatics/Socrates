@@ -885,7 +885,7 @@ isCell <- function(obj,
 #' @importFrom IRanges subsetByOverlaps
 #'
 #' @param obj Object output from findCells or buildMetaData. Required.
-#' @param filtered Logical. Whether or not to use the filtered set of cells. Defaults to TRUE.
+#' @param filtered Logical. Whether or not to use the filtered set of cells. Defaults to FALSE.
 #' @param windows Integer. Window size to build bins. If the 'peaks' parameter is set to TRUE,
 #' this argument is over-ridden.
 #' @param peaks Logical. If TRUE, use ACRs to build sparse matrix instead of genomic tiles.
@@ -899,7 +899,7 @@ isCell <- function(obj,
 #' @export
 #'
 generateMatrix <- function(obj,
-                           filtered=T,
+                           filtered=F,
                            windows=1000,
                            peaks=FALSE,
                            blacklist=NULL,
