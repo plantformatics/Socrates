@@ -726,21 +726,19 @@ isCell <- function(obj,
         ans
     }
 
+    # collect triplet data
     sparse_count_matrix <- obj$counts
+	
     # make sure bins/cells are factors
     if(verbose){message(" - converting triplet format to sparseMatrix")}
     sparse_count_matrix$V1 <- factor(sparse_count_matrix$V1)
     sparse_count_matrix$V2 <- factor(sparse_count_matrix$V2)
 
-
     # convert to sparseMatrix format
     sparse_count_matrix <- Matrix::sparseMatrix(i=as.numeric(sparse_count_matrix$V1),
                               j=as.numeric(sparse_count_matrix$V2),
                               x=as.numeric(sparse_count_matrix$V3),
-                             dimnames=list(levels(sparse_count_matrix$V1),levels(sparse_count_matrix$V2)))
-
-
-
+			      dimnames=list(levels(sparse_count_matrix$V1),levels(sparse_count_matrix$V2)))
 
     # select same cells
     shared <- intersect(rownames(obj$meta), colnames(sparse_count_matrix))
