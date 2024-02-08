@@ -177,10 +177,13 @@ countRemoveOrganelle <- function(obj,
         if (remove_reads == TRUE){
 
             #Subsample bed so organelle reads do not interfere with ACR calls
+	    og <- nrow(obj$bed)
             keep_bed_group <- c(obj$bed$V1 %notin% organelle)
-            final_bed <- subset(obj$bed, keep_bed_group)
+            final_bed <- obj$bed[!obj$bed$V1 %in% organelle,]
             obj$bed <- final_bed
             obj$PtMt <- zz
+	    filtt <- og - nrow(obj$bed)
+	    message("... removed ", filtt, " organeller reads, ", nrow(obj$bed), " nuclear Tn5 insertions remaining...") 
 
         } else {
 
