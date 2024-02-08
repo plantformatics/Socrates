@@ -178,7 +178,9 @@ countRemoveOrganelle <- function(obj,
 
             #Subsample bed so organelle reads do not interfere with ACR calls
             keep_bed_group <- c(obj$bed$V1 %notin% organelle)
-            final_bed <- subset(obj$bed, keep_bed_group)
+            final_bed <- obj$bed[!obj$bed$V1 %in% organelle,]
+	    dif <- nrow(obj$bed) - nrow(final_bed)
+	    message("... ", dif, " Tn5 insertions remaining after filtering...")
             obj$bed <- final_bed
             obj$PtMt <- zz
 
