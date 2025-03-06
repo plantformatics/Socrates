@@ -155,8 +155,12 @@ convertSparseData <- function(obj,
     b$nSites   <- Matrix::colSums(a)
     b$log10nSites <- log10(b$nSites)
 
+    # update object
+    obj$counts <- a
+    obj$meta <- b
+  
     # return
-    return(list(counts=a,meta=b))
+    return(obj)
 }
 
 
